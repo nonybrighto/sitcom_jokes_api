@@ -1,0 +1,9 @@
+{
+	"hello": "hello dddd {{name}}, how ar you this {{time}}",
+	"world": "world",
+	"Hello": "Hello dff",
+	"cat": {
+		"one": "{{name}} has %s cat",
+		"other": "{{name}} has %s cats"
+	}
+}

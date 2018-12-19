@@ -1,0 +1,7 @@
+.vscode
+.nyc_output
+coverage
+config/config.js
+node_modules
+extrainfo.txt
+tryfile.js
