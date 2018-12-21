@@ -5,16 +5,18 @@ const nconf = require('../../config/config');
 class JwtHelper{
 
     constructor(){
-        this.userObjectProp = ['id', 'username', 'email'];
+        this.userObjectProp = ['id', 'username', 'email', 'photoUrl'];
     }
     getJwtUserObject(user){
 
         let jwtUserObject = {}
-    
+        //console.log(user);
         this.userObjectProp.forEach((prop)=>{
+           // console.log(prop);
+            //console.log(user[prop]);
             jwtUserObject[prop] = user[prop];
         });
-    
+        
         return jwtUserObject;
     }
 
@@ -29,7 +31,7 @@ class JwtHelper{
     }
 
     sendJwtResponse(res, user, status = 200){
-        
+        console.log(user);
         res.status(status).send({token: this.generateJwtToken(user), user: this.getJwtUserObject(user)})
     }
 }

@@ -2,6 +2,8 @@ var _ = require('lodash');
 const bcrypt = require('bcrypt');
 const Model = require('./model');
 const UserEntity = require('./neo4j/user_entity');
+const EmailHelper = require('../helpers/email_helper');
+
 
 
 class Users extends Model{
@@ -12,11 +14,15 @@ class Users extends Model{
             this.uuidProp = 'username';
         }
 
-        async addUser(username, email, password) {
+        async addUser(username, email, password, photoUrl = null) {
             
             const saltRounds = 10;
             let passwordHash = await bcrypt.hash(password, saltRounds)
-           return await super.add({prop:{username:username, email:email, password:passwordHash}});
+            let userProp = {username:username, email:email, password:passwordHash};
+            if(photoUrl != null){
+                userProp.photoUrl = photoUrl;
+            }
+           return await super.add({prop: userProp});
 
         }
 
@@ -29,7 +35,14 @@ class Users extends Model{
         async canLogin(credential, password){
 
             //TODO:allow both username and email login
-            let user = await super.get({prop:{username:credential}})
+            let emailHelper = new EmailHelper();
+            let user = '';
+            if(emailHelper.isValidEmail(credential)){
+
+                user = await super.get({prop:{email:credential}});
+            }else{
+                user = await super.get({prop:{username:credential}});
+            }
             if(user){
                 let passwordHash = user.password;
                 let passwordMatch = await bcrypt.compare(password, passwordHash);

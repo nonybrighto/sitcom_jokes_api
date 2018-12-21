@@ -8,7 +8,6 @@ module.exports.getAllUsers = async (req, res, next) => {
     try {
         let user = new Users(dbUtils.getSession());
         let users = await user.getAllUsers();
-        //res.send(JSON.stringify(users));
         res.json(users);
     } catch (err) {
         next(err);
@@ -35,9 +34,6 @@ module.exports.addNewUser = async (req, res, next) => {
                 let newUser = await userz.addUser(username, email, password);
                 if (newUser) {
                     let jwtHelper = new JwtHelper();
-                    //user = jwtHelper.getJwtUserObject(newUser);
-                   // token = jwtHelper.generateJwtToken(newUser);
-                    //return res.status(201).json({ token: token, user: user });
                     jwtHelper.sendJwtResponse(res, newUser, 201);
                 } else {
                     return next(new ApiError('Internal error occured while registering user', true));
@@ -114,8 +110,6 @@ module.exports.sendTokenForEmail = async (req, res, next) => {
 }
 module.exports.changePasswordWithToken = async (req, res, next) => {
 
-       
-    
     let token = req.body.token;
         let newPassword = req.body.newPassword;
         let  passwordToken = new PasswordTokens(dbUtils.getSession());

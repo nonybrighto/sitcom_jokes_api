@@ -4,7 +4,7 @@ const SocialAccounts = require('../app/models/social_accounts');
 const dbUtils = require('../app/helpers/db_utils');
 const JwtHelper = require('../app/helpers/jwt_helper');
 const FacebookTokenStrategy = require('passport-facebook-token');
-const GoogleIdTokenStrategy = require('passport-google-id-token');
+var GoogleTokenStrategy = require('passport-google-id-token');
 
 const ExtractJWT = passportJWT.ExtractJwt;
 
@@ -22,10 +22,9 @@ module.exports = function(passport){
     function (username, password, done) {
 
         let user = new Users(dbUtils.getSession());
-        let jwtHelper = new JwtHelper();
         user.canLogin(username, password).then(function(user){
             if(user){
-                return done(null, jwtHelper.getJwtUserObject(user));
+                return done(null, user);
             }else{
                 return done(null, false, { message: 'Invalid login or password' });
             }
@@ -52,33 +51,33 @@ module.exports = function(passport){
     }
 ));
 
-
-passport.use(new GoogleIdTokenStrategy({
+passport.use(new GoogleTokenStrategy({
     clientID: nconf.get('google-client-id')
   },
-  function(parsedToken, googleId, done) {
-    return done(err, {username:'facebookuser',email:'facebookuseremail'});
+  async function(parsedToken, googleId, done) {
+
+    console.log(parsedToken);
+    console.log('ssss');
+    console.log(googleId);
+    user = await createSocialUser('google', googleId, parsedToken.payload.email, parsedToken.payload.name, parsedToken.payload.picture);
+    return done(null, user);
   }
 ));
-
 
 passport.use(new FacebookTokenStrategy({
     clientID: nconf.get('facebook-client-id'),
     clientSecret: nconf.get('facebook-client-secret')
   }, async function(accessToken, refreshToken, profile, done) {
-      
-
-        //get user details from the database
-
-        //TODO: get the user's details from the profile
-        user = await createSocialUser('facebook', '1234567', 'nony2@gmail.com', 'nony nonso bright');
-        return done(null, {user: user});
+       
+        user = await createSocialUser('facebook', profile.id, profile.emails[0].value, profile.displayName, profile.photos[0].value);
+        return done(null, user);
   }
 ));
 
 }
 
-async function createSocialUser(accountType, accountId, email, name){
+async function createSocialUser(accountType, accountId, email, name, photoUrl){
+    console.log(email);
   let users = new Users(dbUtils.getSession());
   let socialAccounts = new SocialAccounts(dbUtils.getSession(), accountType);
   let user = await users.get({prop:{email:email}});
@@ -90,18 +89,19 @@ async function createSocialUser(accountType, accountId, email, name){
           }
           return user;
   }else{
-      let username = 'useName';
+      let username = name.split(' ')[0].trim();
+      console.log(username);
+
       while(await users.usernameTaken(username)){
           let randomUsernameString = Math.random().toString(36).slice(-3);
           username = username+randomUsernameString;
       }
 
       let  randomPasswordString  = Math.random().toString(36).slice(-8);
-      user = await users.addUser(username, email, randomPasswordString);
+      user = await users.addUser(username, email, randomPasswordString, photoUrl);
       await socialAccounts.addAccount(accountId, email); // consider refactoring this and the one above
       return user;
   }
-  return false;
 }
 
 

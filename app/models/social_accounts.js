@@ -64,10 +64,10 @@ class SocialAccount extends Model{
                     subAccountType = 'Facebook';
                     break;
                 case 'google':
-                    loginType = 'Google';
+                    subAccountType = 'Google';
                     break;
                 default:
-                    loginType = '';
+                    subAccountType = '';
             }
 
             return subAccountType;
