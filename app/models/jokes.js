@@ -23,7 +23,7 @@ class Jokes extends Model{
             let jokeProp = (type == jokeTypesEnum.imageJoke)? 'url' : 'text';
             let queryString = `MATCH(movie:Movie{id:{movieId}}), (owner:User{id:{userId}})
                                 CREATE(joke:Joke:${subJoke}{id:{jokeId}, title:{title}, ${jokeProp}: {content}, likes: 0, dateAdded: apoc.date.format(timestamp())}),
-                                (user)-[:ADDED]->(joke)-[:BELONGS_TO]->(movie) RETURN joke,movie, owner
+                                (owner)-[:ADDED]->(joke)-[:BELONGS_TO]->(movie) RETURN joke,movie, owner
                         `;
             let results = await this.session.run(queryString, {jokeId:jokeId, movieId: movieId, title:title, content: content, userId: userId});
             if(!_.isEmpty(results.records)){
@@ -34,8 +34,35 @@ class Jokes extends Model{
             }else{
                 return false;
             }
-           
-           //TODO: return true or false
+        }
+        async getJokes(type, offset, limit){
+
+            let subJoke = (type == jokeTypesEnum.imageJoke)? 'ImageJoke': 'TextJoke';
+            let queryString = `MATCH(joke:Joke:${subJoke}), 
+                               (owner:User)-[:ADDED]->(joke)-[:BELONGS_TO]->(movie:Movie) 
+                               RETURN joke, owner, movie SKIP ${offset} LIMIT ${limit}`;
+
+            let results = await this.session.run(queryString, {subJoke: subJoke});
+            if(!_.isEmpty(results.records)){
+              
+              let jokes  = results.records.map((result) => {
+                        let joke = new JokeEntity(result.get('joke'));
+                        joke.owner = new UserEntity(result.get('owner'));
+                        return joke;
+              });
+              return jokes;
+            }else{
+                return false;
+            }
+        }
+
+        async getJokesCount(type){
+            let subJoke = (type == jokeTypesEnum.imageJoke)? 'ImageJoke': 'TextJoke';
+            let queryString = `MATCH(jokes:Joke:${subJoke}) RETURN count(jokes) as count`;
+            let results = await this.session.run(queryString, {subJoke: subJoke});
+
+            return results.records[0].get('count').toNumber();
+
         }
 }
 

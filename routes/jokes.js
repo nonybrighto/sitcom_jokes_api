@@ -8,6 +8,8 @@ const authMiddleWare = require('../app/middlewares/auth_middleware');
 
 
 router.route('/')
+      .get(JokeController.getJokes)                 
       .post([authMiddleWare.isJwtAuthenticated, validate(jokeValidator.createJoke)], JokeController.addJoke);
+
 
 module.exports = router;
