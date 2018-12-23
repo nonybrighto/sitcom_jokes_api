@@ -2,6 +2,7 @@ var _ = require('lodash');
 const Model = require('./model');
 const JokeEntity = require('./neo4j/joke_entity');
 const UserEntity = require('./neo4j/user_entity');
+const MovieEntity = require('./neo4j/movie_entity');
 const GeneralHelper = require('./../helpers/general_helper');
 
 const jokeTypesEnum = Object.freeze({imageJoke: 'imageJoke', textJoke: 'textJoke'});
@@ -29,7 +30,7 @@ class Jokes extends Model{
             if(!_.isEmpty(results.records)){
                 let joke = new JokeEntity(results.records[0].get('joke'));
                 joke.owner = new UserEntity(results.records[0].get('owner'));
-                //joke.movie = new MovieEntity(results.records[0].get('movie'));
+                joke.movie = new MovieEntity(results.records[0].get('movie'));
                 return joke;
             }else{
                 return false;
@@ -74,7 +75,7 @@ class Jokes extends Model{
             if(!_.isEmpty(result.records)){
                 let joke =  new JokeEntity(result.records[0].get('joke'));
                 joke.owner =  new UserEntity(result.records[0].get('owner'));
-                //joke.movie =  new MovieEntity(result.records[0].get('movie'));
+                joke.movie =  new MovieEntity(result.records[0].get('movie'));
 
                 return joke;
             }else{
