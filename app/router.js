@@ -5,6 +5,7 @@ var router = function(app){
     const users = require('../routes/users');
     const jokes = require('../routes/jokes');
     const auth = require('../routes/auth');
+    const movies = require('../routes/movies');
     //   var auth = require('../routes/auth.route');
     //   var countries = require('../routes/country.route');
    
@@ -12,6 +13,7 @@ var router = function(app){
       app.use(v1+'/auth',auth);
       app.use(v1+'/users', users);
       app.use(v1+'/jokes', jokes);
+      app.use(v1+'/movies', movies);
   };
   
   module.exports = router;   
