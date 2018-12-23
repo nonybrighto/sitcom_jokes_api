@@ -5,6 +5,7 @@ const dbUtils = require('../app/helpers/db_utils');
 const JwtHelper = require('../app/helpers/jwt_helper');
 const FacebookTokenStrategy = require('passport-facebook-token');
 var GoogleTokenStrategy = require('passport-google-id-token');
+const ApiError = require('../app/helpers/api_error');
 
 const ExtractJWT = passportJWT.ExtractJwt;
 
@@ -43,7 +44,11 @@ module.exports = function(passport){
         let user = new Users(dbUtils.getSession());
         let jwtHelper = new JwtHelper();
         user.get({prop:{id:jwtPayload.id}}).then((user)=>{
-            return cb(null, jwtHelper.getJwtUserObject(user));
+            if(user){
+                return cb(null, jwtHelper.getJwtUserObject(user));
+            }else{
+                return cb(new ApiError('Error getting user details'));
+            }
         }).catch((err)=>{
             return cb(err);
         });

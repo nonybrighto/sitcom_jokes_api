@@ -1,5 +1,6 @@
 var dbUtils = require('../helpers/db_utils');
 var Jokes = require('../models/jokes');
+var Comments = require('../models/comments');
 const ApiError = require('../helpers/api_error');
 const Pagination = require('../helpers/pagination');
 let httpStatus = require('http-status');
@@ -66,6 +67,24 @@ module.exports.getJoke = async (req, res, next) => {
         }catch(err){
             return next(new ApiError('Internal error occured while getting joke', true));
         }
+
+}
+
+
+module.exports.addJokeComment = async (req, res, next) => {
+
+    let userId = req.user.id;
+    let jokeId = req.params.jokeId;
+    let content = req.body.content;
+
+    try{
+        let comments = new Comments(dbUtils.getSession());
+        let comment = await comments.addComment(jokeId, content, userId);
+        res.status(httpStatus.CREATED).send(comment);
+
+    }catch(err){
+        return next(new ApiError('Internal error occured while adding comment', true));
+    }
 
 }
 
