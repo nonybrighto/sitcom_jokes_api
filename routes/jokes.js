@@ -11,5 +11,6 @@ router.route('/')
       .get(JokeController.getJokes)                 
       .post([authMiddleWare.isJwtAuthenticated, validate(jokeValidator.createJoke)], JokeController.addJoke);
 
-
+router.route('/:jokeId')
+      .get(JokeController.getJoke);
 module.exports = router;

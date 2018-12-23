@@ -3,6 +3,7 @@ var JwtHelper = require('../helpers/jwt_helper');
 var Users = require('../models/users');
 var PasswordTokens = require('../models/password_tokens');
 const ApiError = require('../helpers/api_error');
+let httpStatus = require('http-status');
 
 module.exports.getAllUsers = async (req, res, next) => {
     try {
@@ -24,17 +25,17 @@ module.exports.addNewUser = async (req, res, next) => {
     Promise.all([userz.isEmailTaken(email), userz.usernameTaken(username)]).then(
         async (result) => {
             if (result[0]) {
-                return next(new ApiError('The Email has already been taken', true, 409));
+                return next(new ApiError('The Email has already been taken', true, httpStatus.CONFLICT));
             }
             if (result[1]) {
-                return next(new ApiError('The Username has already been taken', true, 409));
+                return next(new ApiError('The Username has already been taken', true,  httpStatus.CONFLICT));
             }
 
             try {
                 let newUser = await userz.addUser(username, email, password);
                 if (newUser) {
                     let jwtHelper = new JwtHelper();
-                    jwtHelper.sendJwtResponse(res, newUser, 201);
+                    jwtHelper.sendJwtResponse(res, newUser, httpStatus.CREATED);
                 } else {
                     return next(new ApiError('Internal error occured while registering user', true));
                 }
@@ -58,7 +59,7 @@ module.exports.changePassword = async (req, res, next) => {
 
     if(userIdToChangePassword != req.user.id){
         
-        return next(new ApiError(`You can't change password for another account`, true, 403));
+        return next(new ApiError(`You can't change password for another account`, true, httpStatus.FORBIDDEN));
     }
 
     let oldPassword = req.body.oldPassword;
@@ -77,7 +78,7 @@ module.exports.changePassword = async (req, res, next) => {
             return next(new ApiError('Error occured while changing password', true));
         }
     }else{
-        return next(new ApiError('Old password is incorrect', true, 403));
+        return next(new ApiError('Old password is incorrect', true, httpStatus.FORBIDDEN));
     }
 
     //TODO: check 401 for wrong credential or 403? check well
@@ -100,7 +101,7 @@ module.exports.sendTokenForEmail = async (req, res, next) => {
             
             res.sendStatus(202);
     }else{
-        return next(new ApiError('Could not find user with this email', true, 404));
+        return next(new ApiError('Could not find user with this email', true, httpStatus.NOT_FOUND));
     }
 
     //return 202 accepted and send token to the email
@@ -120,14 +121,12 @@ module.exports.changePasswordWithToken = async (req, res, next) => {
             if(tokenOwner){
                     //change user password
                     await users.changePassword(tokenOwner.id, newPassword);
-    
                     let jwtHelper = new JwtHelper();
-                    jwtHelper.sendJwtResponse(res, tokenOwner, 200);
+                    jwtHelper.sendJwtResponse(res, tokenOwner, httpStatus.OK);
             }else{
-                return next(new ApiError('Token could not be matched to any account', true, 404));
+                return next(new ApiError('Token could not be matched to any account', true, httpStatus.NOT_FOUND));
             }
-
         }else{
-            return next(new ApiError('Invalid or expired token provided', true, 404));
+            return next(new ApiError('Invalid or expired token provided', true, httpStatus.NOT_FOUND));
         }
 }

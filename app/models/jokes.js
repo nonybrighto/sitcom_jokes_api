@@ -52,7 +52,7 @@ class Jokes extends Model{
               });
               return jokes;
             }else{
-                return false;
+                return [];
             }
         }
 
@@ -63,6 +63,23 @@ class Jokes extends Model{
 
             return results.records[0].get('count').toNumber();
 
+        }
+
+
+        async getJoke(jokeId){
+
+            let queryString = 'MATCH (joke:Joke{id:{id}}) , (owner:User)-[:ADDED]->(joke)-[:BELONGS_TO]->(movie:Movie) RETURN joke, owner, movie';
+            let result = await this.session.run(queryString, {id: jokeId});
+
+            if(!_.isEmpty(result.records)){
+                let joke =  new JokeEntity(result.records[0].get('joke'));
+                joke.owner =  new UserEntity(result.records[0].get('owner'));
+                //joke.movie =  new MovieEntity(result.records[0].get('movie'));
+
+                return joke;
+            }else{
+                return false;
+            }
         }
 }
 

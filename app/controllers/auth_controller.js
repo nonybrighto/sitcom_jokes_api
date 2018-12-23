@@ -1,5 +1,6 @@
 const JwtHelper = require('../helpers/jwt_helper');
 const passport = require('passport');
+let httpStatus = require('http-status');
 
 
 module.exports.login = (req, res, next) => {
