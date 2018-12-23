@@ -144,8 +144,6 @@ class Model{
         let skipString = (!obj.offset)?'':`SKIP ${obj.offset}`;
         let limitString = (!obj.limit)?'':`LIMIT ${obj.limit}`;
         queryString += `${labelString}${propertyString}) ${toReturnString} ${orderByString} ${skipString} ${limitString}`;
-
-
         if(obj.prop){
             return this.session.run(queryString, obj.prop); 
         }
@@ -183,9 +181,6 @@ class Model{
         propAccessString = propAccessStringArr.join(', ');
         return propAccessString;
     }
-
-
-
 
 }
 

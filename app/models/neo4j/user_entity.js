@@ -3,7 +3,7 @@ const Entity = require('./entity');
 class UserEntity extends Entity{
 
     constructor(_node){
-        super(_node, ['klout']);
+        super(_node, ['klout'], ['password']);
    }
 
 }
