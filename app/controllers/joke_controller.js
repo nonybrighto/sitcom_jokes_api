@@ -32,8 +32,8 @@ module.exports.addJoke = async (req, res, next) => {
 module.exports.getJokes = async (req, res, next) => {
 
     let jokeType = req.query.type;
-    let page = parseInt(req.query.page);
-    let perPage = parseInt(req.query.perPage || 10);
+    let page = req.query.page;
+    let perPage = req.query.perPage;
 
 
     try{
@@ -86,6 +86,26 @@ module.exports.addJokeComment = async (req, res, next) => {
         return next(new ApiError('Internal error occured while adding comment', true));
     }
 
+}
+
+
+module.exports.getJokeComments = async (req, res, next) => {
+
+    let page = req.query.page;
+    let perPage = req.query.perPage;
+    let jokeId = req.params.jokeId;
+
+    try{
+        let comments = new Comments(dbUtils.getSession());
+        let commentsCount = await comments.getCommentsCount(jokeId);
+        let pagination = new Pagination('url', commentsCount, page, perPage);
+        let gottenComments = await comments.getComments(jokeId, pagination.getOffset(), perPage);
+
+        return res.status(httpStatus.OK).send({...pagination.generatePaginationObject(), comments: gottenComments});
+
+    }catch(err){
+        return next(new ApiError('Internal error occured while getting comments', true));
+    }
 }
 
 
