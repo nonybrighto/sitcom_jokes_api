@@ -18,11 +18,6 @@ class Comments extends Model{
             let generalHelper = new GeneralHelper();
 
             let commentId = generalHelper.generateUuid(userId, true);
-
-            // let queryString = `MATCH(joke:Joke{id:{jokeId}}), (user:User{id:{userId}})
-            //                    CREATE (comment:Comment{id:${commentId}, content:{content}, dateAdded: apoc.date.format(timestamp())}),
-            //                    (user)-[:COMMENTED]->(comment)<-[:HAS_COMMENT]-(joke)`;
-
             let queryString = `MATCH(joke:Joke{id:{jokeId}}), (user:User{id:{userId}})
             CREATE (comment:Comment{id: {commentId}, content:{content}, dateAdded:  apoc.date.format(timestamp())}),
             (user)-[:COMMENTED]->(comment)<-[:HAS_COMMENT]-(joke) RETURN comment`;

@@ -3,5 +3,6 @@
 coverage
 config/config.js
 node_modules
+uploads
 extrainfo.txt
 tryfile.js

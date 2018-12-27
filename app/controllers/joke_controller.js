@@ -3,7 +3,7 @@ var Jokes = require('../models/jokes');
 var Comments = require('../models/comments');
 const ApiError = require('../helpers/api_error');
 const Pagination = require('../helpers/pagination');
-let httpStatus = require('http-status');
+const httpStatus = require('http-status');
 
 
 module.exports.addJoke = async (req, res, next) => {
@@ -11,23 +11,39 @@ module.exports.addJoke = async (req, res, next) => {
     let type = req.body.type;
     let title = req.body.title;
     let movieId = req.body.movie;
-    let content = (type == 'textJoke') ? req.body.text : 'none';
-    let joke = new Jokes(dbUtils.getSession());
+    let content = (type == 'textJoke') ? req.body.text : '';
 
-    try{
+    let saveJoke = false;
 
-        let jokeAdded = await joke.addJoke(type, title, movieId, content, req.user.id);
-        
-        if(jokeAdded){
-            return res.status(httpStatus.CREATED).send({joke: jokeAdded});
+    if(type == 'imageJoke'){
+        if(req.file){
+            content = req.file.path;
+            saveJoke = true;
         }else{
-            return next(new ApiError('Internal error occured adding joke', true));
+            return next(new ApiError('no image specified', true, httpStatus.UNPROCESSABLE_ENTITY));
         }
-    }catch(err){
-        return next(new ApiError('Internal error occured adding joke', true));
+    }else{
+        saveJoke = true;
     } 
-}
 
+    if(saveJoke){
+        let joke = new Jokes(dbUtils.getSession());
+        try{
+            let jokeAdded = await joke.addJoke(type, title, movieId, content, userId);
+            
+            if(jokeAdded){
+                return res.status(httpStatus.CREATED).send({joke: jokeAdded});
+            }else{
+                return next(new ApiError('Internal error occured adding joke', true));
+            }
+        }catch(err){
+            return next(new ApiError('Internal error occured adding joke', true));
+        } 
+    }
+    return next(new ApiError('Internal error occured adding joke', true));
+    
+    
+}
 
 module.exports.getJokes = async (req, res, next) => {
 
