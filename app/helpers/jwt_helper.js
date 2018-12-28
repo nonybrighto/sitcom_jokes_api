@@ -26,7 +26,8 @@ class JwtHelper{
 
         return jwt.sign(
             jwtUser,
-            nconf.get('jwt-secret')
+            nconf.get('jwt-secret'),
+            {expiresIn: '10 days'}
         );
     }
 
