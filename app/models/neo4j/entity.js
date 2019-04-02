@@ -4,7 +4,7 @@ class Entity{
         constructor(modelProperties){
            
             let node = modelProperties.node;
-            let numFields = modelProperties.numfields;
+            let numFields = modelProperties.numFields;
             let hiddenFields = modelProperties.hiddenFields || [];
             let takenFields = modelProperties.takenFields;
            
