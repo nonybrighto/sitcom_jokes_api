@@ -40,7 +40,7 @@ class PasswordTokens extends Model{
         let  generatedTokenId  = Math.random().toString(36).slice(-8);
         let results = await this.session.run(query, {tokenId:generatedTokenId, email:email});
         if(!_.isEmpty(results.records)){
-            let passwordTokenEntity = new PasswordTokenEntity(results.records[0].get('passwordToken'));
+            let passwordTokenEntity = new PasswordTokenEntity({node:results.records[0].get('passwordToken')});
             return passwordTokenEntity.tokenId;
         }
         return false;
@@ -54,7 +54,7 @@ class PasswordTokens extends Model{
         let results = await this.session.run(query, {email:email});
 
         if(!_.isEmpty(results.records)){
-                return new PasswordTokenEntity(results.records[0].get('passwordToken'));
+                return new PasswordTokenEntity({node:results.records[0].get('passwordToken')});
         }else{
             return false;
         }

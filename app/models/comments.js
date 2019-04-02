@@ -24,7 +24,7 @@ class Comments extends Model{
             let result = await this.session.run(queryString, {commentId:commentId, jokeId:jokeId, userId:userId, content:content});
 
             if(!_.isEmpty(result.records)){
-                let comment =  new CommentEntity(result.records[0].get('comment'));
+                let comment =  new CommentEntity({node:result.records[0].get('comment')});
                 return comment;
             }else{
                 return false;
@@ -40,7 +40,7 @@ class Comments extends Model{
             let results = await this.session.run(queryString, {jokeId: jokeId});
             if(!_.isEmpty(results.records)){
               let comments  = results.records.map((result) => {
-                        let comment = new CommentEntity(result.get('comment'));
+                        let comment = new CommentEntity({node:result.get('comment')});
                         comment.owner = new UserEntity({node:result.get('owner')});
                         return comment;
               });
