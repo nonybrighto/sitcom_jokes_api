@@ -39,7 +39,7 @@ class Model{
         objz.limit = 1;
         let results = await this._get(objz);
         if(results.records.length){
-            return new this.entity(results.records[0].get('mod'));
+            return new this.entity({node:results.records[0].get('mod'), takenFields: objz.takenFields});
         }
         return false;
     }

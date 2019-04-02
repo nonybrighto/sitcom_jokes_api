@@ -41,7 +41,7 @@ class Comments extends Model{
             if(!_.isEmpty(results.records)){
               let comments  = results.records.map((result) => {
                         let comment = new CommentEntity(result.get('comment'));
-                        comment.owner = new UserEntity(result.get('owner'));
+                        comment.owner = new UserEntity({node:result.get('owner')});
                         return comment;
               });
               return comments;

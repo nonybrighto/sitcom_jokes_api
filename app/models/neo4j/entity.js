@@ -1,14 +1,25 @@
 var _ = require('lodash');
 class Entity{
     
-        constructor(_node, numFields = null, hiddenFields){
-           let nodeProperties = _node.properties;
+        constructor(modelProperties){
+           
+            let node = modelProperties.node;
+            let numFields = modelProperties.numfields;
+            let hiddenFields = modelProperties.hiddenFields || [];
+            let takenFields = modelProperties.takenFields;
+           
+            let nodeProperties = node.properties;
 
-            var newNodeProperties = _.omit(nodeProperties, hiddenFields);
+            let newNodeProperties = {};
+            if(takenFields){
+                newNodeProperties = _.pick(nodeProperties, takenFields);
+            }else{
+                newNodeProperties = _.omit(nodeProperties, hiddenFields);
+            }
             _.extend(this, newNodeProperties);
     
             if (numFields){
-                this._setNumbers(numFields, _node.properties);
+                this._setNumbers(numFields, node.properties);
             }
         }
     

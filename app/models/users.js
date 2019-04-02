@@ -39,9 +39,9 @@ class Users extends Model{
             let user = '';
             if(emailHelper.isValidEmail(credential)){
 
-                user = await super.get({prop:{email:credential}});
+                user = await super.get({prop:{email:credential}, takenFields:['id', 'username', 'email', 'password']});
             }else{
-                user = await super.get({prop:{username:credential}});
+                user = await super.get({prop:{username:credential}, takenFields:['id','username', 'email', 'password']});
             }
             if(user){
                 let passwordHash = user.password;
@@ -97,7 +97,7 @@ class Users extends Model{
 
             let results = await this.session.run(query, {tokenId: tokenId});
             if(!_.isEmpty(results.records)){
-                    return new UserEntity(results.records[0].get('user'));
+                    return new UserEntity({node:results.records[0].get('user')});
             }else{
                 return false;
             }

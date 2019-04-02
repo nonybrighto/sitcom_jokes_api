@@ -2,7 +2,7 @@ const Entity = require('./entity');
 
 class PasswordTokenEntity extends Entity{
 
-    constructor(_node){
+   constructor(_node){
         super(_node);
    }
 

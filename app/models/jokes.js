@@ -29,7 +29,7 @@ class Jokes extends Model{
             let results = await this.session.run(queryString, {jokeId:jokeId, movieId: movieId, title:title, content: content, userId: userId});
             if(!_.isEmpty(results.records)){
                 let joke = new JokeEntity(results.records[0].get('joke'));
-                joke.owner = new UserEntity(results.records[0].get('owner'));
+                joke.owner = new UserEntity({node:results.records[0].get('owner')});
                 joke.movie = new MovieEntity(results.records[0].get('movie'));
                 return joke;
             }else{
@@ -48,7 +48,7 @@ class Jokes extends Model{
               
               let jokes  = results.records.map((result) => {
                         let joke = new JokeEntity(result.get('joke'));
-                        joke.owner = new UserEntity(result.get('owner'));
+                        joke.owner = new UserEntity({node:result.get('owner')});
                         return joke;
               });
               return jokes;
@@ -74,7 +74,7 @@ class Jokes extends Model{
 
             if(!_.isEmpty(result.records)){
                 let joke =  new JokeEntity(result.records[0].get('joke'));
-                joke.owner =  new UserEntity(result.records[0].get('owner'));
+                joke.owner =  new UserEntity({node:result.records[0].get('owner')});
                 joke.movie =  new MovieEntity(result.records[0].get('movie'));
 
                 return joke;

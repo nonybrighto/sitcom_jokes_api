@@ -1,11 +1,10 @@
 const Entity = require('./entity');
-//TODO: Dont send out sensitive info to the user such as password
 class UserEntity extends Entity{
-
-    constructor(_node){
-        super(_node, ['klout'], ['password','email']);
+    constructor(userModelProperties){
+        userModelProperties.hiddenFields = ['password','email'];
+        userModelProperties.numFields = [];
+        super(userModelProperties);
    }
-
 }
 
 module.exports = UserEntity;
