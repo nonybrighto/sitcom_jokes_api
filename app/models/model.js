@@ -31,7 +31,7 @@ class Model{
 
         queryString += `${labelString}${propertyString}) ${toReturnString}`;
         let result = await this.session.run(queryString, obj.prop);
-        return new this.entity(result.records[0].get('mod'));
+        return new this.entity({node:result.records[0].get('mod')});
 
     }
 
@@ -50,7 +50,7 @@ class Model{
         let results = await this._get(obj);
         let res = results.records.map(r => {
             let rr = r.get('mod');
-            return new this.entity(rr)
+            return new this.entity({node:rr})
         });
         return res;
     }
