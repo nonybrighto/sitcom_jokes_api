@@ -85,7 +85,7 @@ async function createSocialUser(accountType, accountId, email, name, photoUrl){
     console.log(email);
   let users = new Users(dbUtils.getSession());
   let socialAccounts = new SocialAccounts(dbUtils.getSession(), accountType);
-  let user = await users.get({prop:{email:email}});
+  let user = await users.get({prop:{email:email}, takenFields:['id', 'username', 'email', 'password', 'photoUrl']});
   if(user){
           if(await socialAccounts.accountExists(accountId)){
               await socialAccounts.updateUse(accountId, email);

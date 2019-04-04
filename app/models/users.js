@@ -22,7 +22,7 @@ class Users extends Model{
             if(photoUrl != null){
                 userProp.photoUrl = photoUrl;
             }
-           return await super.add({prop: userProp, takenFields:['id', 'username', 'email', 'password']});
+           return await super.add({prop: userProp, takenFields:['id', 'username', 'email', 'password', 'photoUrl']});
 
         }
 
@@ -38,9 +38,9 @@ class Users extends Model{
             let emailHelper = new EmailHelper();
             let user = '';
             if(emailHelper.isValidEmail(credential)){
-                user = await super.get({prop:{email:credential}, takenFields:['id', 'username', 'email', 'password']});
+                user = await super.get({prop:{email:credential}, takenFields:['id', 'username', 'email', 'password', 'photoUrl']});
             }else{
-                user = await super.get({prop:{username:credential}, takenFields:['id','username', 'email', 'password']});
+                user = await super.get({prop:{username:credential}, takenFields:['id','username', 'email', 'password', 'photoUrl']});
             }
             if(user){
                 let passwordHash = user.password;

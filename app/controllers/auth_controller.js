@@ -28,8 +28,11 @@ module.exports.googleIdTokenAuth = (req, res, next) => {
 
     passport.authenticate('google-id-token', { session: false },
         (err, user, info) => {
-            if (err) {
-                res.send(err);
+            if (err || info) {
+                //res.send(err);
+                return res.status(400).json({
+                    message: 'google authentication failed',
+                });
             }
             let jwtHelper = new JwtHelper();
             jwtHelper.sendJwtResponse(res, user);
@@ -42,7 +45,9 @@ module.exports.facebookTokenAuth = (req, res, next) => {
     passport.authenticate('facebook-token', { session: false },
         (err, user, info) => {
             if (err) {
-                res.send(err);
+                return res.status(400).json({
+                    message: 'facebook authentication failed',
+                });
             }
             let jwtHelper = new JwtHelper();
             jwtHelper.sendJwtResponse(res, user);
