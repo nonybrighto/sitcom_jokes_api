@@ -7,7 +7,8 @@ const httpStatus = require('http-status');
 
 
 module.exports.addJoke = async (req, res, next) => {
-
+    
+    let userId = req.user.id;
     let type = req.body.type;
     let title = req.body.title;
     let movieId = req.body.movie;
@@ -32,7 +33,7 @@ module.exports.addJoke = async (req, res, next) => {
             let jokeAdded = await joke.addJoke(type, title, movieId, content, userId);
             
             if(jokeAdded){
-                return res.status(httpStatus.CREATED).send({joke: jokeAdded});
+                return res.status(httpStatus.CREATED).send(jokeAdded);
             }else{
                 return next(new ApiError('Internal error occured adding joke', true));
             }
