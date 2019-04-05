@@ -5,7 +5,7 @@ const UserEntity = require('./neo4j/user_entity');
 const MovieEntity = require('./neo4j/movie_entity');
 const GeneralHelper = require('./../helpers/general_helper');
 
-const jokeTypesEnum = Object.freeze({imageJoke: 'imageJoke', textJoke: 'textJoke'});
+const jokeTypesEnum = Object.freeze({imageJoke: 'image', textJoke: 'text'});
 
 class Jokes extends Model{
 
@@ -21,9 +21,9 @@ class Jokes extends Model{
 
             let jokeId = generalHelper.generateUuid(title, true);
             let subJoke = (type == jokeTypesEnum.imageJoke)? 'ImageJoke': 'TextJoke';
-            let jokeProp = (type == jokeTypesEnum.imageJoke)? 'url' : 'text';
+            //let jokeProp = (type == jokeTypesEnum.imageJoke)? 'url' : 'text';
             let queryString = `MATCH(movie:Movie{id:{movieId}}), (owner:User{id:{userId}})
-                                CREATE(joke:Joke:${subJoke}{id:{jokeId}, title:{title}, ${jokeProp}: {content}, likes: 0, dateAdded: apoc.date.format(timestamp())}),
+                                CREATE(joke:Joke:${subJoke}{id:{jokeId}, title:{title}, content: {content}, likeCount: 0, commentCount: 0,  dateAdded: apoc.date.format(timestamp())}),
                                 (owner)-[:ADDED]->(joke)-[:BELONGS_TO]->(movie) RETURN joke,movie, owner
                         `;
             let results = await this.session.run(queryString, {jokeId:jokeId, movieId: movieId, title:title, content: content, userId: userId});
