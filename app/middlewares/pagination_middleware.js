@@ -7,7 +7,7 @@ module.exports = (req, res, next) => {
     
     let perPage = parseInt(req.query.per_page, 10);
     if (isNaN(perPage)) {
-      perPage = 10;
+      perPage = 25;
     } else if (perPage > 50) {
       perPage = 50;
     } else if (perPage < 1) {
