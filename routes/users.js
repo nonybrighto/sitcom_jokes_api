@@ -9,12 +9,12 @@ const authMiddleWare = require('../app/middlewares/auth_middleware');
 
 router.route('/')
       //.get(UserController.getAllUsers)
-      .get(authMiddleWare.isJwtAuthenticated, UserController.getAllUsers)
+      .get(authMiddleWare.jwtAuthentication, UserController.getAllUsers)
       //.post(UserController.addNewUser);
       .post(validate(userValidator.createUser), UserController.addNewUser);
 
 router.route('/:userId/password')
-      .patch([authMiddleWare.isJwtAuthenticated, 
+      .patch([authMiddleWare.jwtAuthentication, 
             validate(userValidator.changePassword)], UserController.changePassword)
 
 router.route('/password')

@@ -13,7 +13,7 @@ const fileUploader = new FileUploader();
 
 router.route('/')
       .get([paginationMiddleWare], JokeController.getJokes)                 
-      .post([fileUploader.imageUploadMiddleWare({bodyValid:jokeValidator.jokeBodyValidForUpload }), authMiddleWare.isJwtAuthenticated, validate(jokeValidator.createJoke)], JokeController.addJoke);
+      .post([fileUploader.imageUploadMiddleWare({bodyValid:jokeValidator.jokeBodyValidForUpload }), authMiddleWare.jwtAuthentication, validate(jokeValidator.createJoke)], JokeController.addJoke);
 
 router.route('/:jokeId')
       .get(JokeController.getJoke);
@@ -21,6 +21,6 @@ router.route('/:jokeId')
 
 router.route('/:jokeId/comments')
             .get([paginationMiddleWare], JokeController.getJokeComments)
-            .post([authMiddleWare.isJwtAuthenticated, validate(commentValidator.addComment)], JokeController.addJokeComment);      
+            .post([authMiddleWare.jwtAuthentication, validate(commentValidator.addComment)], JokeController.addJokeComment);      
 
 module.exports = router;

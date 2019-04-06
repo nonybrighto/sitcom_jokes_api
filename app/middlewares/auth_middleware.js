@@ -9,4 +9,18 @@ const loginLimiter = rateLimit({
   });
 
 exports.loginLimiter = loginLimiter;
-exports.isJwtAuthenticated = passport.authenticate('jwt', {session: false});
+exports.jwtAuthentication = (req, res, next) => {
+
+  passport.authenticate('jwt', {session: false}, (err, user, info) => {
+
+    if (err || !user) {
+      return res.status(401).json({
+          message: 'Request not authorized'
+      });
+    }else{
+      req.user = user;
+    }
+  next();
+  })(req, res, next);
+  
+}
