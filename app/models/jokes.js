@@ -4,8 +4,8 @@ const JokeEntity = require('./neo4j/joke_entity');
 const UserEntity = require('./neo4j/user_entity');
 const MovieEntity = require('./neo4j/movie_entity');
 const GeneralHelper = require('./../helpers/general_helper');
+const Enums = require('./../models/enums');
 
-const jokeTypesEnum = Object.freeze({imageJoke: 'image', textJoke: 'text'});
 
 class Jokes extends Model{
 
@@ -20,7 +20,7 @@ class Jokes extends Model{
             let generalHelper = new GeneralHelper();
 
             let jokeId = generalHelper.generateUuid(title, true);
-            let subJoke = (type == jokeTypesEnum.imageJoke)? 'ImageJoke': 'TextJoke';
+            let subJoke = (type == Enums.jokeTypesEnum.imageJoke)? 'ImageJoke': 'TextJoke';
             //let jokeProp = (type == jokeTypesEnum.imageJoke)? 'url' : 'text';
             let queryString = `MATCH(movie:Movie{id:{movieId}}), (owner:User{id:{userId}})
                                 CREATE(joke:Joke:${subJoke}{id:{jokeId}, title:{title}, content: {content}, likeCount: 0, commentCount: 0,  dateAdded: apoc.date.format(timestamp())}),
@@ -38,7 +38,7 @@ class Jokes extends Model{
         }
         async getJokes(type, offset, limit){
 
-            let subJoke = (type == jokeTypesEnum.imageJoke)? 'ImageJoke': 'TextJoke';
+            let subJoke = (type == Enums.jokeTypesEnum.imageJoke)? 'ImageJoke': 'TextJoke';
             let queryString = `MATCH(joke:Joke:${subJoke}), 
                                (owner:User)-[:ADDED]->(joke)-[:BELONGS_TO]->(movie:Movie) 
                                RETURN joke, owner, movie SKIP ${offset} LIMIT ${limit}`;
@@ -60,7 +60,7 @@ class Jokes extends Model{
         }
 
         async getJokesCount(type){
-            let subJoke = (type == jokeTypesEnum.imageJoke)? 'ImageJoke': 'TextJoke';
+            let subJoke = (type == Enums.jokeTypesEnum.imageJoke)? 'ImageJoke': 'TextJoke';
             let queryString = `MATCH(jokes:Joke:${subJoke}) RETURN count(jokes) as count`;
             let results = await this.session.run(queryString, {subJoke: subJoke});
 

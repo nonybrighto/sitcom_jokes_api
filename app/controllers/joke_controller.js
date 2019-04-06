@@ -4,6 +4,7 @@ var Comments = require('../models/comments');
 const ApiError = require('../helpers/api_error');
 const Pagination = require('../helpers/pagination');
 const httpStatus = require('http-status');
+const Enums = require('../models/enums');
 
 
 module.exports.addJoke = async (req, res, next) => {
@@ -12,13 +13,14 @@ module.exports.addJoke = async (req, res, next) => {
     let type = req.body.type;
     let title = req.body.title;
     let movieId = req.body.movie;
-    let content = (type == 'textJoke') ? req.body.text : '';
+    //let content = (type ==  Enums.jokeTypesEnum.textJoke) ? req.body.text : '';
+    let content = req.body.content;
 
     let saveJoke = false;
 
-    if(type == 'imageJoke'){
+    if(type == Enums.jokeTypesEnum.imageJoke){
         if(req.file){
-            content = req.file.path;
+            content = req.file.destination+req.file.filename;
             saveJoke = true;
         }else{
             return next(new ApiError('no image specified', true, httpStatus.UNPROCESSABLE_ENTITY));
@@ -59,7 +61,7 @@ module.exports.getJokes = async (req, res, next) => {
         let pagination = new Pagination('url', jokesCount, page, perPage);
         let gottenJokes = await joke.getJokes(jokeType, pagination.getOffset(), perPage);
 
-        return res.status(httpStatus.OK).send({...pagination.generatePaginationObject(), jokes: gottenJokes});
+        return res.status(httpStatus.OK).send({...pagination.generatePaginationObject(), results: gottenJokes});
 
     }catch(err){
         return next(new ApiError('Internal error occured while getting jokes', true));
