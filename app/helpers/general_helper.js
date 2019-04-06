@@ -12,7 +12,7 @@ class GeneralHelper{
                 property  = this.generateRandomStrings(8);
             }
             if(addRandom){
-                property+this.generateRandomStrings(7);
+                property+=this.generateRandomStrings(7);
             }
 
            let id =  uuid(property, nconf.get('uuid-namespace'));
