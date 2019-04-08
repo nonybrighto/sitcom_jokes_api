@@ -1,35 +1,36 @@
 var _ = require('lodash');
 class Entity{
     
-        constructor(modelProperties){
-           
-            let node = modelProperties.node;
-            let numFields = modelProperties.numFields;
-            let hiddenFields = modelProperties.hiddenFields || [];
-            let takenFields = modelProperties.takenFields;
-           
-            let nodeProperties = node.properties;
 
-            let newNodeProperties = {};
+        constructor({modelProperties = null, numFields = null, hiddenFields = null, takenFields = null }){
+           
+            let nodeProperties = (this.isNode(modelProperties))? modelProperties.properties : modelProperties;
+
             if(takenFields){
-                newNodeProperties = _.pick(nodeProperties, takenFields);
-            }else{
-                newNodeProperties = _.omit(nodeProperties, hiddenFields);
+                nodeProperties = _.pick(nodeProperties, takenFields);
+            }else if(hiddenFields){
+                nodeProperties = _.omit(nodeProperties, hiddenFields);
             }
-            _.extend(this, newNodeProperties);
+            _.extend(this, nodeProperties);
     
             if (numFields){
-                this._setNumbers(numFields, node.properties);
+                //this._setNumbers(numFields, node.properties);
+                this._modifyNumberFields(numFields);
             }
         }
     
-        _setNumbers(numProp, gotProp){
-            numProp.forEach(num => {
-                let got = gotProp[num];
-                if(got){
-                    this[num] = got.toNumber();
+        _modifyNumberFields(numFields){
+            numFields.forEach(numField => {
+               // let got = gotProp[num];
+                if(this[numField]){
+                    this[numField] = this[numField].toNumber();
                 }
             });
+        }
+
+
+        isNode(modelProperties){
+                return modelProperties.properties && modelProperties.labels
         }
 }
 

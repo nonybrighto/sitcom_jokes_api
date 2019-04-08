@@ -17,7 +17,7 @@ class Movies extends Model{
             let result = await this.session.run(queryString, {id: movieId});
 
             if(!_.isEmpty(result.records)){
-                let movie =  new MovieEntity({node:result.records[0].get('movie')});
+                let movie =  new MovieEntity(result.records[0].get('movie'));
                 return movie;
             }else{
                 return false;

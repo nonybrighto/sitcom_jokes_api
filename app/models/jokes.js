@@ -21,39 +21,40 @@ class Jokes extends Model{
 
             let jokeId = generalHelper.generateUuid(title, true);
             let subJoke = (type == Enums.jokeTypesEnum.imageJoke)? 'ImageJoke': 'TextJoke';
-            //let jokeProp = (type == jokeTypesEnum.imageJoke)? 'url' : 'text';
             let queryString = `MATCH(movie:Movie{id:{movieId}}), (owner:User{id:{userId}})
                                 CREATE(joke:Joke:${subJoke}{id:{jokeId}, title:{title}, content: {content}, likeCount: 0, commentCount: 0,  dateAdded: apoc.date.format(timestamp())}),
                                 (owner)-[:ADDED]->(joke)-[:BELONGS_TO]->(movie) RETURN joke,movie, owner
                         `;
-            let results = await this.session.run(queryString, {jokeId:jokeId, movieId: movieId, title:title, content: content, userId: userId});
-            if(!_.isEmpty(results.records)){
-                let joke = new JokeEntity({node:results.records[0].get('joke')});
-                joke.owner = new UserEntity({node:results.records[0].get('owner')});
-                joke.movie = new MovieEntity({node:results.records[0].get('movie')});
+            let result = await this.session.run(queryString, {jokeId:jokeId, movieId: movieId, title:title, content: content, userId: userId});
+            if(!_.isEmpty(result.records)){
+
+                let joke =  new JokeEntity(result.records[0].get('joke'), {owner: new UserEntity(result.records[0].get('owner')), movie: new MovieEntity(result.records[0].get('movie'))});
                 return joke;
             }else{
                 return false;
             }
         }
-        async getJokes(type, offset, limit){
+        async getJokes(type, offset, limit, currentUser){
 
             let subJoke = (type == Enums.jokeTypesEnum.imageJoke)? 'ImageJoke': 'TextJoke';
             let queryString = `MATCH(joke:Joke:${subJoke}), 
-                               (owner:User)-[:ADDED]->(joke)-[:BELONGS_TO]->(movie:Movie) 
-                               RETURN joke, owner, movie SKIP ${offset} LIMIT ${limit}`;
+                               (owner:User)-[:ADDED]->(joke)-[:BELONGS_TO]->(movie:Movie)
+                               OPTIONAL MATCH 
+(currentUserFav:User{id:"bd19684f-6e1d-57c2-b612-1d03fd1d8227"})-[:FAVORITED]->(joke) 
+OPTIONAL MATCH 
+(currentUserLike:User{id:"bd19684f-6e1d-57c2-b612-1d03fd1d8227"})-[:LIKES]->(joke) 
 
-            let results = await this.session.run(queryString, {subJoke: subJoke});
-            if(!_.isEmpty(results.records)){
+RETURN joke{.*, favorited:count(currentUserFav) > 0, liked:count(currentUserLike) > 0, jokeType: labels(joke)}, owner, movie SKIP ${offset} LIMIT ${limit}`;
+
+            let result = await this.session.run(queryString, {subJoke: subJoke});
+            if(!_.isEmpty(result.records)){
               
-              let jokes  = results.records.map((result) => {
-                        let joke = new JokeEntity({node:result.get('joke')});
-                        joke.owner = new UserEntity({node:result.get('owner')});
-                        joke.movie =  new MovieEntity({node:result.get('movie')});
-                        return joke;
-                        
-              });
+              let jokes  = result.records.map((result) => new JokeEntity(result.get('joke'), 
+                            {owner: new UserEntity(result.get('owner')), 
+                            movie: new MovieEntity(result.get('movie'))}));
               return jokes;
+
+              
             }else{
                 return [];
             }
@@ -62,9 +63,9 @@ class Jokes extends Model{
         async getJokesCount(type){
             let subJoke = (type == Enums.jokeTypesEnum.imageJoke)? 'ImageJoke': 'TextJoke';
             let queryString = `MATCH(jokes:Joke:${subJoke}) RETURN count(jokes) as count`;
-            let results = await this.session.run(queryString, {subJoke: subJoke});
+            let result = await this.session.run(queryString, {subJoke: subJoke});
 
-            return results.records[0].get('count').toNumber();
+            return result.records[0].get('count').toNumber();
 
         }
 
@@ -75,10 +76,7 @@ class Jokes extends Model{
             let result = await this.session.run(queryString, {id: jokeId});
 
             if(!_.isEmpty(result.records)){
-                let joke =  new JokeEntity({node:result.records[0].get('joke')});
-                joke.owner =  new UserEntity({node:result.records[0].get('owner')});
-                 joke.movie =  new MovieEntity({node:result.records[0].get('movie')});
-
+                let joke =  new JokeEntity(result.records[0].get('joke'), {owner: new UserEntity(result.records[0].get('owner')), movie: new MovieEntity(result.records[0].get('movie'))});
                 return joke;
             }else{
                 return false;

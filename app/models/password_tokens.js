@@ -17,9 +17,9 @@ class PasswordTokens extends Model{
                      DELETE passwordToken, r 
                      RETURN count(passwordToken) as count`;
         
-        let results = await this.session.run(query, {tokenId:generatedTokenId, email:email});
-        //TODO: inspect results
-        if (!_.isEmpty(results.records) && results.records[0].get('count') > 0){
+        let result = await this.session.run(query, {tokenId:generatedTokenId, email:email});
+        //TODO: inspect result
+        if (!_.isEmpty(result.records) && result.records[0].get('count') > 0){
             return true;
         }else{
             return false;
@@ -38,9 +38,9 @@ class PasswordTokens extends Model{
                     RETURN passwordToken`;
         
         let  generatedTokenId  = Math.random().toString(36).slice(-8);
-        let results = await this.session.run(query, {tokenId:generatedTokenId, email:email});
-        if(!_.isEmpty(results.records)){
-            let passwordTokenEntity = new PasswordTokenEntity({node:results.records[0].get('passwordToken')});
+        let result = await this.session.run(query, {tokenId:generatedTokenId, email:email});
+        if(!_.isEmpty(result.records)){
+            let passwordTokenEntity = new PasswordTokenEntity(result.records[0].get('passwordToken'));
             return passwordTokenEntity.tokenId;
         }
         return false;
@@ -51,10 +51,10 @@ class PasswordTokens extends Model{
         let query = `MATCH(passwordToken:PasswordToken)-[:PASSWORD_TOKEN_FOR]->(:User{email:{email}}) 
                     RETURN passwordToken 
                     LIMIT 1`;
-        let results = await this.session.run(query, {email:email});
+        let result = await this.session.run(query, {email:email});
 
-        if(!_.isEmpty(results.records)){
-                return new PasswordTokenEntity({node:results.records[0].get('passwordToken')});
+        if(!_.isEmpty(result.records)){
+                return new PasswordTokenEntity({node:result.records[0].get('passwordToken')});
         }else{
             return false;
         }
@@ -64,9 +64,9 @@ class PasswordTokens extends Model{
     async isValidToken(tokenId){
         let tokenExpirationLength = this._getTokenExpirationLength();
         let queryString = `MATCH(passwordToken:PasswordToken{tokenId:{tokenId}}) WHERE passwordToken.dateExpires > apoc.date.format(timestamp() - ${tokenExpirationLength}) RETURN passwordToken`;
-        let results = await this.session.run(queryString, {tokenId: tokenId});
+        let result = await this.session.run(queryString, {tokenId: tokenId});
 
-        if(!_.isEmpty(results.records)){
+        if(!_.isEmpty(result.records)){
                 return true;
         }else{
             return false;
@@ -81,8 +81,8 @@ class PasswordTokens extends Model{
     // async confirmToken(email, tokenId){
 
     //     let query = "MATCH (token:PasswordToken{tokenId:{tokenId} ) , (tokenOwner:User{email:{email}}) , (password)-[:PASSWORD_TOKEN_FOR]->(tokenOwner) RETURN token ";
-    //     results = await this.session.run(query, {tokenId:tokenId, email:email});
-    //     if(_.isEmpty(results.records)){
+    //     result = await this.session.run(query, {tokenId:tokenId, email:email});
+    //     if(_.isEmpty(result.records)){
     //         return false;
     //     }else{
     //         return true;

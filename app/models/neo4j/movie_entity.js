@@ -1,11 +1,10 @@
 const Entity = require('./entity');
 class MovieEntity extends Entity{
 
-    constructor(movieModelProperties){
-        movieModelProperties.numFields = ['tmdbMovieId'];
-        super(movieModelProperties);
-        this.followed = (movieModelProperties.followed != null)?movieModelProperties.followed : false;
-   }
+    constructor(movieModelProperties, {hiddenFields = null, takenFields = null}={}){
+        super({modelProperties: movieModelProperties, numFields: ['tmdbMovieId']});
+        this.followed = movieModelProperties.followed || false;
+   } 
 
 }
 

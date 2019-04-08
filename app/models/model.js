@@ -37,9 +37,9 @@ class Model{
 
     async get(objz){
         objz.limit = 1;
-        let results = await this._get(objz);
-        if(results.records.length){
-            return new this.entity({node:results.records[0].get('mod'), takenFields: objz.takenFields});
+        let result = await this._get(objz);
+        if(result.records.length){
+            return new this.entity(result.records[0].get('mod'), {takenFields: objz.takenFields});
         }
         return false;
     }
@@ -47,8 +47,8 @@ class Model{
     async getAll(objz){
 
         let obj = (objz)?objz: {};
-        let results = await this._get(obj);
-        let res = results.records.map(r => {
+        let result = await this._get(obj);
+        let res = result.records.map(r => {
             let rr = r.get('mod');
             return new this.entity({node:rr})
         });
@@ -68,10 +68,7 @@ class Model{
         return deleted;
     }
 
-   /* update(){
-
-    }*/
-
+  
     //{labels:['User'], prop:{username:'username'}, return:['name','email'], update:{'name':'newName'} }
     async update(objz){
        
@@ -101,9 +98,9 @@ class Model{
        let myStuff = {};
        _.extend(myStuff, obj.prop, newUpdates);
 
-       let results = await this.session.run(queryString, myStuff);
+       let result = await this.session.run(queryString, myStuff);
 
-       if (_.isEmpty(results)) {
+       if (_.isEmpty(result)) {
            return false;
        }
        return true;
@@ -123,8 +120,8 @@ class Model{
         let deleteString = ' DELETE mod ';
         queryString += `${labelString}${propertyString}) ${deleteString} ${orderByString}`;
         
-        let results = await this.session.run(queryString, obj.prop);
-        if (_.isEmpty(results)) {
+        let result = await this.session.run(queryString, obj.prop);
+        if (_.isEmpty(result)) {
             return false;
         }
         return true;

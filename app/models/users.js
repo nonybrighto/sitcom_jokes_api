@@ -96,7 +96,7 @@ class Users extends Model{
 
             let results = await this.session.run(query, {tokenId: tokenId});
             if(!_.isEmpty(results.records)){
-                    return new UserEntity({node:results.records[0].get('user')});
+                    return new UserEntity(results.records[0].get('user'));
             }else{
                 return false;
             }

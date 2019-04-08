@@ -33,16 +33,14 @@ class Comments extends Model{
 
         async getComments(jokeId, offset, limit){
 
-           
             let queryString = `MATCH(comment:Comment), (owner:User)-[:COMMENTED]->(comment)<-[:HAS_COMMENT]-(joke:Joke{id:{jokeId}})
                                RETURN comment, owner SKIP ${offset} LIMIT ${limit}`;
 
-            let results = await this.session.run(queryString, {jokeId: jokeId});
-            if(!_.isEmpty(results.records)){
-              let comments  = results.records.map((result) => {
-                        let comment = new CommentEntity({node:result.get('comment')});
-                        comment.owner = new UserEntity({node:result.get('owner')});
-                        return comment;
+            let result = await this.session.run(queryString, {jokeId: jokeId});
+            if(!_.isEmpty(result.records)){
+              let comments  = result.records.map((result) => {
+                let comment = new CommentEntity(result.get('comment'), {owner: new UserEntity(result.get('owner'))});
+                return comment;
               });
               return comments;
             }else{
@@ -52,8 +50,8 @@ class Comments extends Model{
 
         async getCommentsCount(jokeId){
             let queryString = `MATCH (comment:Comment)<-[:HAS_COMMENT]-(joke:Joke{id:{jokeId}}) RETURN count(comment) as count`;
-            let results = await this.session.run(queryString, {jokeId: jokeId});
-            return results.records[0].get('count').toNumber();
+            let result = await this.session.run(queryString, {jokeId: jokeId});
+            return result.records[0].get('count').toNumber();
         }
 }
 
