@@ -34,19 +34,23 @@ class Jokes extends Model{
                 return false;
             }
         }
-        async getJokes(type, offset, limit, currentUser){
+        async getJokes(type, offset, limit, currentUserId){
+
+            let likeQueryString  = (currentUserId) ? `OPTIONAL MATCH 
+                    (currentUserFav:User{id:{currentUserId}})-[:FAVORITED]->(joke) 
+                    OPTIONAL MATCH 
+                    (currentUserLike:User{id:{currentUserId}})-[:LIKES]->(joke) `: '';
+            let likeReturnString = (currentUserId)?'favorited:count(currentUserFav) > 0, liked:count(currentUserLike) > 0,':'';
+            let paramObject = (currentUserId)?{currentUserId: currentUserId}: {};
 
             let subJoke = (type == Enums.jokeTypesEnum.imageJoke)? 'ImageJoke': 'TextJoke';
+           
             let queryString = `MATCH(joke:Joke:${subJoke}), 
                                (owner:User)-[:ADDED]->(joke)-[:BELONGS_TO]->(movie:Movie)
-                               OPTIONAL MATCH 
-(currentUserFav:User{id:"bd19684f-6e1d-57c2-b612-1d03fd1d8227"})-[:FAVORITED]->(joke) 
-OPTIONAL MATCH 
-(currentUserLike:User{id:"bd19684f-6e1d-57c2-b612-1d03fd1d8227"})-[:LIKES]->(joke) 
+                                ${likeQueryString}
+                                RETURN joke{.*, ${likeReturnString} jokeType: labels(joke)}, owner, movie SKIP ${offset} LIMIT ${limit}`;
 
-RETURN joke{.*, favorited:count(currentUserFav) > 0, liked:count(currentUserLike) > 0, jokeType: labels(joke)}, owner, movie SKIP ${offset} LIMIT ${limit}`;
-
-            let result = await this.session.run(queryString, {subJoke: subJoke});
+            let result = await this.session.run(queryString, paramObject);
             if(!_.isEmpty(result.records)){
               
               let jokes  = result.records.map((result) => new JokeEntity(result.get('joke'), 
