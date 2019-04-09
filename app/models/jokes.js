@@ -7,6 +7,7 @@ const GeneralHelper = require('./../helpers/general_helper');
 const Enums = require('./../models/enums');
 
 
+
 class Jokes extends Model{
 
         constructor(session){
@@ -34,7 +35,7 @@ class Jokes extends Model{
                 return false;
             }
         }
-        async getJokes(type, offset, limit, currentUserId){
+        async getJokes(type, offset, limit, currentUserId, {movieId, userId}={}){
 
             let likeQueryString  = (currentUserId) ? `OPTIONAL MATCH 
                     (currentUserFav:User{id:{currentUserId}})-[:FAVORITED]->(joke) 
@@ -43,10 +44,16 @@ class Jokes extends Model{
             let likeReturnString = (currentUserId)?'favorited:count(currentUserFav) > 0, liked:count(currentUserLike) > 0,':'';
             let paramObject = (currentUserId)?{currentUserId: currentUserId}: {};
 
+            let movieString = (movieId)?'{id:{movieId}}':'';
+                paramObject = (movieId)? {...paramObject, ...{movieId: movieId}} : paramObject;
+           
+            let userString = (userId)?'{id:{userId}}':'';
+                paramObject = (userId)? {...paramObject, ...{userId: userId}} : paramObject;
+
             let subJoke = (type == Enums.jokeTypesEnum.imageJoke)? 'ImageJoke': 'TextJoke';
            
             let queryString = `MATCH(joke:Joke:${subJoke}), 
-                               (owner:User)-[:ADDED]->(joke)-[:BELONGS_TO]->(movie:Movie)
+                               (owner:User${userString})-[:ADDED]->(joke)-[:BELONGS_TO]->(movie:Movie${movieString})
                                 ${likeQueryString}
                                 RETURN joke{.*, ${likeReturnString} jokeType: labels(joke)}, owner, movie SKIP ${offset} LIMIT ${limit}`;
 
@@ -57,8 +64,6 @@ class Jokes extends Model{
                             {owner: new UserEntity(result.get('owner')), 
                             movie: new MovieEntity(result.get('movie'))}));
               return jokes;
-
-              
             }else{
                 return [];
             }

@@ -5,6 +5,7 @@ const JokeEntity = require('./neo4j/joke_entity');
 const UserEntity = require('./neo4j/user_entity');
 const MovieEntity = require('./neo4j/movie_entity');
 const EmailHelper = require('../helpers/email_helper');
+const Enums = require('./../models/enums');
 
 
 
@@ -32,6 +33,45 @@ class Users extends Model{
 
             let allUsers = await super.getAll();
             return allUsers;
+        }
+
+        async getUserJokes(type, offset, limit, currentUserId,userId){
+
+            let likeQueryString  = (currentUserId) ? `OPTIONAL MATCH 
+            (currentUserFav:User{id:{currentUserId}})-[:FAVORITED]->(joke) 
+            OPTIONAL MATCH 
+            (currentUserLike:User{id:{currentUserId}})-[:LIKES]->(joke) `: '';
+            let likeReturnString = (currentUserId)?'favorited:count(currentUserFav) > 0, liked:count(currentUserLike) > 0,':'';
+            let paramObject = (currentUserId)?{currentUserId: currentUserId}: {};
+            let subJoke = (type == Enums.jokeTypesEnum.imageJoke)? 'ImageJoke': 'TextJoke';
+
+                paramObject = {...paramObject, ...{userId: userId}};
+        
+            let queryString = `MATCH(joke:Joke:${subJoke}), 
+                            (owner:User{id:{userId}})-[:ADDED]->(joke)-[:BELONGS_TO]->(movie:Movie)
+                                ${likeQueryString}
+                                RETURN joke{.*, ${likeReturnString} jokeType: labels(joke)}, owner, movie SKIP ${offset} LIMIT ${limit}`;
+
+            let result = await this.session.run(queryString, paramObject);
+            if(!_.isEmpty(result.records)){
+            
+            let jokes  = result.records.map((result) => new JokeEntity(result.get('joke'), 
+                            {owner: new UserEntity(result.get('owner')), 
+                            movie: new MovieEntity(result.get('movie'))}));
+            return jokes;
+            }else{
+                return [];
+            }
+
+        }
+
+        async getUserJokesCount(type, userId){
+
+            let subJoke = (type == Enums.jokeTypesEnum.imageJoke)? 'ImageJoke': 'TextJoke';
+            let queryString = `MATCH(user:User{id:{userId}})-[:ADDED]->(jokes:Joke:${subJoke}) RETURN count(jokes) as count`;
+            let result = await this.session.run(queryString, {userId:userId});
+
+            return result.records[0].get('count').toNumber();
         }
 
         async getFavoriteJokesCount(userId){

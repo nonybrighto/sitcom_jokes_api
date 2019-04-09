@@ -23,6 +23,13 @@ class Movies extends Model{
                 return false;
             }
         }
+
+        async getmovieJokesCount(movieId){
+
+            let queryString = `MATCH(joke)-[:BELONGS_TO]->(movie:Movie{id:{movieId}})  RETURN count(joke) as count`;
+            let result = await this.session.run(queryString, {movieId:movieId});
+            return result.records[0].get('count').toNumber();
+        }
 }
 
 module.exports = Movies;

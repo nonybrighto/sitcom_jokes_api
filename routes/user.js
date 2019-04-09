@@ -16,6 +16,9 @@ router.route('/favorited/joke/:jokeId')
       .put([authMiddleWare.jwtAuthentication], UserController.addJokeToFavorite)
       .delete([authMiddleWare.jwtAuthentication], UserController.removeJokeFromFavorite)
 
+router.route('/jokes')
+      .get([authMiddleWare.jwtAuthentication, paginationMiddleWare], UserController.getUserJokes)
+
 
 
 module.exports = router;

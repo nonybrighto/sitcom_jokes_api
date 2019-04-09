@@ -1,10 +1,12 @@
 var dbUtils = require('../helpers/db_utils');
 var JwtHelper = require('../helpers/jwt_helper');
 var Users = require('../models/users');
+var Jokes = require('../models/jokes');
 var PasswordTokens = require('../models/password_tokens');
 const Pagination = require('../helpers/pagination');
 const ApiError = require('../helpers/api_error');
 let httpStatus = require('http-status');
+const Enums = require('../models/enums');
 
 module.exports.getAllUsers = async (req, res, next) => {
     try {
@@ -74,6 +76,33 @@ module.exports.getUserFavoriteJokes = async(req, res, next) => {
             return next(new ApiError('Internal error occured while getting jokes', true));
         }
     
+}
+
+
+module.exports.getUserJokes = async(req, res, next) => {
+
+    try{
+    let jokeType = req.query.type;
+    let page = req.query.page;
+    let perPage = req.query.perPage;
+    let currentUserId = (req.user)? req.user.id: null;
+    let userId = (req.params.userId)? req.params.userId: currentUserId;
+
+
+    let users = new Users(dbUtils.getSession());
+    let jokes = new Jokes(dbUtils.getSession());
+    let jokesCount = await users.getUserJokesCount(jokeType, userId);
+    let pagination = new Pagination('url', jokesCount, page, perPage);
+    // let gottenJokes = await users.getUserJokes(jokeType,pagination.getOffset(), perPage, currentUserId, userId);
+    let gottenJokes = await jokes.getJokes(jokeType, pagination.getOffset(), perPage, currentUserId, {userId: userId});
+
+    return res.status(httpStatus.OK).send({...pagination.generatePaginationObject(), results: gottenJokes});
+
+    }catch(error){
+        return next(new ApiError('Internal error occured while getting user jokes', true));
+    }
+
+        
 }
 module.exports.likeJoke = async(req, res, next) => {
 

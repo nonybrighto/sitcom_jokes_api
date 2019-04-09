@@ -55,13 +55,14 @@ module.exports.getJokes = async (req, res, next) => {
     let page = req.query.page;
     let perPage = req.query.perPage;
     let currentUserId = (req.user)? req.user.id: null;
+    let movieId = req.query.movie;
 
 
   
         let joke = new Jokes(dbUtils.getSession());
         let jokesCount = await joke.getJokesCount(jokeType);
         let pagination = new Pagination('url', jokesCount, page, perPage);
-        let gottenJokes = await joke.getJokes(jokeType, pagination.getOffset(), perPage, currentUserId);
+        let gottenJokes = await joke.getJokes(jokeType, pagination.getOffset(), perPage, currentUserId, movieId);
 
         return res.status(httpStatus.OK).send({...pagination.generatePaginationObject(), results: gottenJokes});
 
