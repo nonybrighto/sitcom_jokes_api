@@ -24,3 +24,13 @@ exports.jwtAuthentication = (req, res, next) => {
   })(req, res, next);
   
 }
+exports.jwtOptionalAuthentication = (req, res, next) => {
+
+  passport.authenticate('jwt', {session: false}, (err, user, info) => {
+    if(user){
+      req.user = user;
+    }
+  next();
+  })(req, res, next);
+  
+}

@@ -12,12 +12,15 @@ const fileUploader = new FileUploader();
 
 
 router.route('/')
-      .get([paginationMiddleWare], JokeController.getJokes)                 
+      .get([paginationMiddleWare, authMiddleWare.jwtOptionalAuthentication], JokeController.getJokes)                 
       .post([fileUploader.imageUploadMiddleWare({bodyValid:jokeValidator.jokeBodyValidForUpload , fieldName: 'content' }), authMiddleWare.jwtAuthentication, validate(jokeValidator.createJoke)], JokeController.addJoke);
 
+      
 router.route('/:jokeId')
       .get(JokeController.getJoke);
-
+      
+router.route('/:jokeId/likes')
+            .get([paginationMiddleWare],JokeController.getJokeLikers);
 
 router.route('/:jokeId/comments')
             .get([paginationMiddleWare], JokeController.getJokeComments)

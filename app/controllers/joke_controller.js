@@ -129,4 +129,27 @@ module.exports.getJokeComments = async (req, res, next) => {
     }
 }
 
+module.exports.getJokeLikers = async (req, res, next) => {
+
+    let jokeId = req.params.jokeId;
+    let page = req.query.page;
+    let perPage = req.query.perPage;
+
+
+    try{
+
+        let joke = new Jokes(dbUtils.getSession());
+        let jokeLikersCount = await joke.getJokeLikesCount(jokeId);
+        let pagination = new Pagination('url', jokeLikersCount, page, perPage);
+        let gottenJokes = await joke.getJokeLikers(jokeId, pagination.getOffset(), perPage);
+
+        return res.status(httpStatus.OK).send({...pagination.generatePaginationObject(), results: gottenJokes});
+
+    }catch(err){
+        return next(new ApiError('Internal error occured while getting joke likes', true));
+    }
+    
+
+}
+
 

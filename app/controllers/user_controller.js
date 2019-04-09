@@ -2,6 +2,7 @@ var dbUtils = require('../helpers/db_utils');
 var JwtHelper = require('../helpers/jwt_helper');
 var Users = require('../models/users');
 var PasswordTokens = require('../models/password_tokens');
+const Pagination = require('../helpers/pagination');
 const ApiError = require('../helpers/api_error');
 let httpStatus = require('http-status');
 
@@ -48,6 +49,50 @@ module.exports.addNewUser = async (req, res, next) => {
         console.log(err);
         next(err);
     });
+
+}
+
+module.exports.getUserFavoriteJokes = async(req, res, next) => {
+
+        
+        try{
+            let page = req.query.page;
+            let perPage = req.query.perPage;
+            let currentUserId = req.user.id;
+
+
+            let users = new Users(dbUtils.getSession());
+            let jokesCount = await users.getFavoriteJokesCount(currentUserId);
+            let pagination = new Pagination('url', jokesCount, page, perPage);
+            let gottenJokes = await users.getFavoriteJokes(currentUserId, pagination.getOffset(), perPage);
+
+            return res.status(httpStatus.OK).send({...pagination.generatePaginationObject(), results: gottenJokes});
+
+
+
+        }catch(error){
+            return next(new ApiError('Internal error occured while getting jokes', true));
+        }
+    
+}
+module.exports.likeJoke = async(req, res, next) => {
+
+
+
+}
+module.exports.unlikeJoke = async(req, res, next) => {
+
+
+
+}
+module.exports.addJokeToFavorite = async(req, res, next) => {
+
+
+
+}
+module.exports.removeJokeFromFavorite = async(req, res, next) => {
+
+
 
 }
 

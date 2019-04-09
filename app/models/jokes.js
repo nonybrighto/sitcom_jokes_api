@@ -86,6 +86,27 @@ class Jokes extends Model{
                 return false;
             }
         }
+
+        async getJokeLikers(jokeId,  offset, limit){
+
+            let queryString = `MATCH (user:User)-[:LIKES]->(joke:Joke{id: {jokeId} }) RETURN user SKIP ${offset} LIMIT ${limit}`;
+
+            let result = await this.session.run(queryString, {jokeId: jokeId});
+            if(!_.isEmpty(result.records)){
+              
+              let users  = result.records.map((result) => new UserEntity(result.get('user')));
+              return users;
+            }else{
+                return [];
+            }
+        }
+
+        async getJokeLikesCount(jokeId){
+
+            let queryString = `MATCH (user:User)-[:LIKES]->(joke:Joke{id: {jokeId} }) RETURN count(user) as count`;
+            let result = await this.session.run(queryString, {jokeId: jokeId});
+            return result.records[0].get('count').toNumber();
+        }
 }
 
 module.exports = Jokes;

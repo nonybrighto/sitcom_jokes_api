@@ -4,6 +4,7 @@ var validate = require('express-validation');
 var userValidator = require('../app/middlewares/validators/user_validator');
 var UserController = require('../app/controllers/user_controller');
 const authMiddleWare = require('../app/middlewares/auth_middleware');
+const paginationMiddleWare = require('../app/middlewares/pagination_middleware');
 
 
 
@@ -12,6 +13,18 @@ router.route('/')
       .get(authMiddleWare.jwtAuthentication, UserController.getAllUsers)
       //.post(UserController.addNewUser);
       .post(validate(userValidator.createUser), UserController.addNewUser);
+
+router.route('/favorites/jokes')
+      .get([authMiddleWare.jwtAuthentication, paginationMiddleWare], UserController.getUserFavoriteJokes)
+
+router.route('/liked/joke/:jokeId')
+      .put(UserController.likeJoke)
+      .delete(UserController.unlikeJoke)
+
+router.route('/favorited/joke/:jokeId')
+      .put(UserController.addJokeToFavorite)
+      .put(UserController.removeJokeFromFavorite)
+
 
 router.route('/:userId/password')
       .patch([authMiddleWare.jwtAuthentication, 

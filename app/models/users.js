@@ -1,7 +1,9 @@
 var _ = require('lodash');
 const bcrypt = require('bcrypt');
 const Model = require('./model');
+const JokeEntity = require('./neo4j/joke_entity');
 const UserEntity = require('./neo4j/user_entity');
+const MovieEntity = require('./neo4j/movie_entity');
 const EmailHelper = require('../helpers/email_helper');
 
 
@@ -30,6 +32,39 @@ class Users extends Model{
 
             let allUsers = await super.getAll();
             return allUsers;
+        }
+
+        async getFavoriteJokesCount(userId){
+
+            let queryString = `MATCH(user:User{id:{userId}})-[:FAVORITED]->(joke:Joke) RETURN count(joke) as count`;
+
+            let result = await this.session.run(queryString, {userId: userId});
+            return result.records[0].get('count').toNumber();
+        }
+
+
+        async getFavoriteJokes(userId, offset, limit){
+
+            let queryString = `MATCH(user:User{id:{userId}})-[:FAVORITED]->(joke:Joke) , (owner)-[:ADDED]->(joke)-[:BELONGS_TO]->(movie) 
+            OPTIONAL MATCH 
+                    (userLike:User{id:{userId}})-[:LIKES]->(joke)
+            RETURN joke{.*, favorited:true, liked:count(userLike) > 0 }, owner, movie SKIP ${offset} LIMIT ${limit}`;
+
+
+            let result = await this.session.run(queryString, {userId: userId});
+            if(!_.isEmpty(result.records)){
+              
+              let jokes  = result.records.map((result) => new JokeEntity(result.get('joke'), 
+                            {owner: new UserEntity(result.get('owner')), 
+                            movie: new MovieEntity(result.get('movie'))}));
+              return jokes;
+
+            }else{
+                return [];
+            }
+
+
+
         }
 
         async canLogin(credential, password){
