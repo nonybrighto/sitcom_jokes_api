@@ -88,12 +88,42 @@ module.exports.unlikeJoke = async(req, res, next) => {
 module.exports.addJokeToFavorite = async(req, res, next) => {
 
 
+            try{
+
+                let currentUserId = req.user.id;
+                let jokeId = req.params.jokeId;
+
+                let users = new Users(dbUtils.getSession());
+                let favorited =  await users.addJokeToFavorite(currentUserId, jokeId);
+                if(favorited){
+                    return res.sendStatus(httpStatus.NO_CONTENT);
+                }else{
+                    return res.status(httpStatus.NOT_FOUND).send({message: 'could not find joke resource'});
+                }
+            }catch(error){
+                return next(new ApiError('Internal error occured while adding joke to favorites', true));
+
+            }
 
 }
 module.exports.removeJokeFromFavorite = async(req, res, next) => {
 
+    try{
 
+        let currentUserId = req.user.id;
+        let jokeId = req.params.jokeId;
 
+        let users = new Users(dbUtils.getSession());
+        let removed = await users.removeJokeFromFavorite(currentUserId, jokeId);
+        if(removed){
+            return res.sendStatus(httpStatus.NO_CONTENT);
+        }else{
+            return res.status(httpStatus.NOT_FOUND).send({message: 'The joke is not in your favorite'});
+        }
+
+    }catch(error){
+        return next(new ApiError('Internal error occured while adding joke to favorites', true));
+    }
 }
 
 module.exports.changePassword = async (req, res, next) => {

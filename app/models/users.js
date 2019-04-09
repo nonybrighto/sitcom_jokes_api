@@ -67,6 +67,32 @@ class Users extends Model{
 
         }
 
+        async addJokeToFavorite(userId, jokeId){
+
+                let queryString = `MATCH(user:User{id:{userId}}), (joke:Joke{id:{jokeId}}) MERGE (user)-[:FAVORITED]->(joke) RETURN 1`;
+
+                let result = await this.session.run(queryString, {userId:userId, jokeId: jokeId});
+                if(!_.isEmpty(result.records)){
+                   return true;
+                }else{
+                   return false;
+                }
+
+        }
+
+        async removeJokeFromFavorite(userId, jokeId){
+
+            let queryString = `MATCH(user:User{id:{userId}})-[r:FAVORITED]->(joke:Joke{id:{jokeId}}) DELETE r RETURN 1`;
+
+            let result = await this.session.run(queryString, {userId:userId, jokeId: jokeId});
+            if(!_.isEmpty(result.records)){
+                return true;
+            }else{
+               return false;
+            }
+            
+        }
+
         async canLogin(credential, password){
 
             //TODO:allow both username and email login

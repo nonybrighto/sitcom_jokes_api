@@ -18,12 +18,12 @@ router.route('/favorites/jokes')
       .get([authMiddleWare.jwtAuthentication, paginationMiddleWare], UserController.getUserFavoriteJokes)
 
 router.route('/liked/joke/:jokeId')
-      .put(UserController.likeJoke)
-      .delete(UserController.unlikeJoke)
+      .put([authMiddleWare.jwtOptionalAuthentication],UserController.likeJoke)
+      .delete([authMiddleWare.jwtOptionalAuthentication],UserController.unlikeJoke)
 
 router.route('/favorited/joke/:jokeId')
-      .put(UserController.addJokeToFavorite)
-      .put(UserController.removeJokeFromFavorite)
+      .put([authMiddleWare.jwtAuthentication], UserController.addJokeToFavorite)
+      .delete([authMiddleWare.jwtAuthentication], UserController.removeJokeFromFavorite)
 
 
 router.route('/:userId/password')
