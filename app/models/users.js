@@ -138,7 +138,6 @@ class Users extends Model{
             let tx = this.session.beginTransaction(); 
             let canCommit = true;
             
-            try{
             if(currentUserId){
                 let userLikeQueryString = `MATCH(user:User{id:{userId}}), (joke:Joke{id:{jokeId}}) MERGE (user)-[like:LIKES]->(joke) ON CREATE SET like.dateAdded = apoc.date.format(timestamp()) RETURN 1`;
                 let userLikeresult = await tx.run(userLikeQueryString, {userId:currentUserId, jokeId: jokeId});
@@ -152,17 +151,10 @@ class Users extends Model{
                 if(_.isEmpty(increaseLikeResult.records)){
                     canCommit = false;
                 }
-            }catch(error){
-                canCommit = false;
-            }
-
+           
             if(canCommit){
-                try{
                 await tx.commit();
                 return true;
-                }catch(err){
-                    return false;
-                }
             }
             return false;
 
