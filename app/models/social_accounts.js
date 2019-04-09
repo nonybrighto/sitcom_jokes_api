@@ -1,4 +1,4 @@
-var _ = require('lodash');
+const _ = require('lodash');
 const Model = require('./model');
 const SocialAccountEntity = require('./neo4j/social_account_entity');
 

@@ -7,7 +7,7 @@ module.exports.login = (req, res, next) => {
     passport.authenticate('local', { session: false }, (err, user, info) => {
 
         if (err || !user) {
-            return res.status(400).json({
+            return res.status(httpStatus.BAD_REQUEST).json({
                 message: info ? info.message : 'Login failed',
                 user: user
             });
@@ -30,7 +30,7 @@ module.exports.googleIdTokenAuth = (req, res, next) => {
         (err, user, info) => {
             if (err || info) {
                 //res.send(err);
-                return res.status(400).json({
+                return res.status(httpStatus.BAD_REQUEST).json({
                     message: 'google authentication failed',
                 });
             }
@@ -45,7 +45,7 @@ module.exports.facebookTokenAuth = (req, res, next) => {
     passport.authenticate('facebook-token', { session: false },
         (err, user, info) => {
             if (err) {
-                return res.status(400).json({
+                return res.status(httpStatus.BAD_REQUEST).json({
                     message: 'facebook authentication failed',
                 });
             }

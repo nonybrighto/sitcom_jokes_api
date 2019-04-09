@@ -1,11 +1,11 @@
-var dbUtils = require('../helpers/db_utils');
-var JwtHelper = require('../helpers/jwt_helper');
-var Users = require('../models/users');
-var Jokes = require('../models/jokes');
-var PasswordTokens = require('../models/password_tokens');
+const dbUtils = require('../helpers/db_utils');
+const JwtHelper = require('../helpers/jwt_helper');
+const Users = require('../models/users');
+const Jokes = require('../models/jokes');
+const PasswordTokens = require('../models/password_tokens');
 const Pagination = require('../helpers/pagination');
 const ApiError = require('../helpers/api_error');
-let httpStatus = require('http-status');
+const httpStatus = require('http-status');
 const Enums = require('../models/enums');
 
 module.exports.getAllUsers = async (req, res, next) => {

@@ -1,4 +1,4 @@
-var _ = require('lodash');
+const _ = require('lodash');
 const Model = require('./model');
 const PasswordTokenEntity = require('./neo4j/password_token_entity');
 const nconf = require('./../../config/config');

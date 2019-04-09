@@ -1,4 +1,4 @@
-var _ = require('lodash');
+const _ = require('lodash');
 const Model = require('./model');
 const JokeEntity = require('./neo4j/joke_entity');
 const UserEntity = require('./neo4j/user_entity');

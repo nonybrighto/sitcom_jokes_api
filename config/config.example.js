@@ -1,6 +1,6 @@
 'use strict';
 
-var nconf = require('nconf');
+const nconf = require('nconf');
 
 nconf.defaults({
 	'api-v1-url': 'http://localhost:3000/api/v1/',

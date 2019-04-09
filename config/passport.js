@@ -4,7 +4,7 @@ const SocialAccounts = require('../app/models/social_accounts');
 const dbUtils = require('../app/helpers/db_utils');
 const JwtHelper = require('../app/helpers/jwt_helper');
 const FacebookTokenStrategy = require('passport-facebook-token');
-var GoogleTokenStrategy = require('passport-google-id-token');
+const GoogleTokenStrategy = require('passport-google-id-token');
 const ApiError = require('../app/helpers/api_error');
 
 const ExtractJWT = passportJWT.ExtractJwt;

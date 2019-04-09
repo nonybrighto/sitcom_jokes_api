@@ -1,4 +1,4 @@
-let httpStatus = require('http-status');
+const httpStatus = require('http-status');
 
 
 class APIError extends Error{ 

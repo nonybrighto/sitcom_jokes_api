@@ -1,7 +1,7 @@
 const multer = require('multer');
 const md5 = require('md5');
-var path = require("path");
-var mkdirp = require('mkdirp');
+const path = require("path");
+const mkdirp = require('mkdirp');
 
 class FileUploader{
 

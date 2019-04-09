@@ -1,6 +1,6 @@
-var express = require('express');
-var router = express.Router();
-var MovieController = require('../app/controllers/movie_controller');
+const express = require('express');
+const router = express.Router();
+const MovieController = require('../app/controllers/movie_controller');
 const authMiddleWare = require('../app/middlewares/auth_middleware');
 const paginationMiddleWare = require('../app/middlewares/pagination_middleware');
 

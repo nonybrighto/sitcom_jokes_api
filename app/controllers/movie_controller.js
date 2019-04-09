@@ -1,9 +1,9 @@
-var dbUtils = require('../helpers/db_utils');
-var Movies = require('../models/movies');
-var Jokes = require('../models/jokes');
+const dbUtils = require('../helpers/db_utils');
+const Movies = require('../models/movies');
+const Jokes = require('../models/jokes');
 const ApiError = require('../helpers/api_error');
 const Pagination = require('../helpers/pagination');
-let httpStatus = require('http-status');
+const httpStatus = require('http-status');
 
 
 module.exports.getMovie = async (req, res, next) => {

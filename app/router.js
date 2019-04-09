@@ -1,4 +1,4 @@
-var router = function(app){
+const router = function(app){
 
     const v1 = '/api/v1';
   
