@@ -102,7 +102,11 @@ module.exports.addJokeComment = async (req, res, next) => {
     try{
         let comments = new Comments(dbUtils.getSession());
         let comment = await comments.addComment(jokeId, content, userId);
-        res.status(httpStatus.CREATED).send(comment);
+        if(comment){
+            res.status(httpStatus.CREATED).send(comment);
+        }else{
+            return res.status(httpStatus.NOT_FOUND).send({message: 'The joke could not be found'});
+        }
 
     }catch(err){
         return next(new ApiError('Internal error occured while adding comment', true));
@@ -123,7 +127,7 @@ module.exports.getJokeComments = async (req, res, next) => {
         let pagination = new Pagination('url', commentsCount, page, perPage);
         let gottenComments = await comments.getComments(jokeId, pagination.getOffset(), perPage);
 
-        return res.status(httpStatus.OK).send({...pagination.generatePaginationObject(), comments: gottenComments});
+        return res.status(httpStatus.OK).send({...pagination.generatePaginationObject(), results: gottenComments});
 
     }catch(err){
         return next(new ApiError('Internal error occured while getting comments', true));

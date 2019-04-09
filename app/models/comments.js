@@ -14,27 +14,42 @@ class Comments extends Model{
 
         async addComment(jokeId, content, userId){
 
-            
+        
+            let tx = this.session.beginTransaction(); 
+            let canCommit = true;
+            let comment;
+
             let generalHelper = new GeneralHelper();
 
             let commentId = generalHelper.generateUuid(userId, true);
-            let queryString = `MATCH(joke:Joke{id:{jokeId}}), (user:User{id:{userId}})
-            CREATE (comment:Comment{id: {commentId}, content:{content}, dateAdded:  apoc.date.format(timestamp())}),
-            (user)-[:COMMENTED]->(comment)<-[:HAS_COMMENT]-(joke) RETURN comment`;
-            let result = await this.session.run(queryString, {commentId:commentId, jokeId:jokeId, userId:userId, content:content});
+            let queryString = `MATCH(joke:Joke{id:{jokeId}}), (owner:User{id:{userId}})
+            CREATE (comment:Comment{id: {commentId}, content:{content}}),
+            (owner)-[cmt:COMMENTED{dateAdded:apoc.date.format(timestamp())}]->(comment)<-[:HAS_COMMENT]-(joke) RETURN comment{.*, dateAdded: cmt.dateAdded }, owner`;
 
-            if(!_.isEmpty(result.records)){
-                let comment =  new CommentEntity({node:result.records[0].get('comment')});
-                return comment;
+            let result = await tx.run(queryString, {commentId:commentId, jokeId:jokeId, userId:userId, content:content});
+            if(_.isEmpty(result.records)){
+                canCommit = false;
             }else{
-                return false;
+                comment =  new CommentEntity(result.records[0].get('comment'), {owner: new UserEntity(result.records[0].get('owner'))});
             }
+
+            let updateCountQueryString = `MATCH(joke:Joke{id:{jokeId}}) SET joke.commentCount = joke.commentCount + 1 RETURN 1`;
+            let updateCountResult = await tx.run(updateCountQueryString, {jokeId:jokeId});
+            if(_.isEmpty(updateCountResult.records)){
+                canCommit = false;
+            }
+
+           if(canCommit){
+                await tx.commit();
+                return comment;
+           }
+           return false;
         }
 
         async getComments(jokeId, offset, limit){
 
-            let queryString = `MATCH(comment:Comment), (owner:User)-[:COMMENTED]->(comment)<-[:HAS_COMMENT]-(joke:Joke{id:{jokeId}})
-                               RETURN comment, owner SKIP ${offset} LIMIT ${limit}`;
+            let queryString = `MATCH(owner:User)-[cmt:COMMENTED]->(comment:Comment)<-[:HAS_COMMENT]-(joke:Joke{id:{jokeId}})
+                               RETURN comment{.*, dateAdded: cmt.dateAdded}, owner SKIP ${offset} LIMIT ${limit}`;
 
             let result = await this.session.run(queryString, {jokeId: jokeId});
             if(!_.isEmpty(result.records)){
