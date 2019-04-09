@@ -19,7 +19,7 @@ router.route('/favorites/jokes')
 
 router.route('/liked/joke/:jokeId')
       .put([authMiddleWare.jwtOptionalAuthentication],UserController.likeJoke)
-      .delete([authMiddleWare.jwtOptionalAuthentication],UserController.unlikeJoke)
+      .delete([authMiddleWare.jwtAuthentication],UserController.unlikeJoke)
 
 router.route('/favorited/joke/:jokeId')
       .put([authMiddleWare.jwtAuthentication], UserController.addJokeToFavorite)

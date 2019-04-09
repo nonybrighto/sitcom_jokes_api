@@ -77,11 +77,43 @@ module.exports.getUserFavoriteJokes = async(req, res, next) => {
 }
 module.exports.likeJoke = async(req, res, next) => {
 
+        try{
+            let currentUserId = (req.user) ? req.user.id : null;
+            let jokeId = req.params.jokeId;
+
+
+            let users = new Users(dbUtils.getSession());
+            let liked = await users.likeJoke(jokeId, currentUserId);
+            if(liked){
+                return res.sendStatus(httpStatus.NO_CONTENT);
+            }else{
+                return res.status(httpStatus.NOT_FOUND).send({message: 'The joke could not be found'});
+            }
+
+        }catch(error){
+            return next(new ApiError('Internal error occured while liking joke', true));
+        }
 
 
 }
 module.exports.unlikeJoke = async(req, res, next) => {
 
+    try{
+        let currentUserId = req.user.id;
+        let jokeId = req.params.jokeId;
+
+
+        let users = new Users(dbUtils.getSession());
+        let unliked = await users.unlikeJoke(jokeId, currentUserId);
+        if(unliked){
+            return res.sendStatus(httpStatus.NO_CONTENT);
+        }else{
+            return res.status(httpStatus.NOT_FOUND).send({message: 'The joke could not be found'});
+        }
+        
+    }catch(error){
+        return next(new ApiError('Internal error occured while unliking joke', true));
+    }
 
 
 }
