@@ -45,10 +45,10 @@ class Users extends Model{
 
         async getFavoriteJokes(userId, offset, limit){
 
-            let queryString = `MATCH(user:User{id:{userId}})-[:FAVORITED]->(joke:Joke) , (owner)-[:ADDED]->(joke)-[:BELONGS_TO]->(movie) 
+            let queryString = `MATCH(user:User{id:{userId}})-[fav:FAVORITED]->(joke:Joke) , (owner)-[:ADDED]->(joke)-[:BELONGS_TO]->(movie) 
             OPTIONAL MATCH 
                     (userLike:User{id:{userId}})-[:LIKES]->(joke)
-            RETURN joke{.*, favorited:true, liked:count(userLike) > 0 }, owner, movie SKIP ${offset} LIMIT ${limit}`;
+            RETURN joke{.*, favorited:true, liked:count(userLike) > 0 }, owner, movie ORDER BY fav.dateAdded DESC SKIP ${offset} LIMIT ${limit}`;
 
 
             let result = await this.session.run(queryString, {userId: userId});
@@ -69,7 +69,7 @@ class Users extends Model{
 
         async addJokeToFavorite(userId, jokeId){
 
-                let queryString = `MATCH(user:User{id:{userId}}), (joke:Joke{id:{jokeId}}) MERGE (user)-[:FAVORITED]->(joke) RETURN 1`;
+                let queryString = `MATCH(user:User{id:{userId}}), (joke:Joke{id:{jokeId}}) MERGE (user)-[:FAVORITED{dateAdded: apoc.date.format(timestamp())}]->(joke) RETURN 1`;
 
                 let result = await this.session.run(queryString, {userId:userId, jokeId: jokeId});
                 if(!_.isEmpty(result.records)){
