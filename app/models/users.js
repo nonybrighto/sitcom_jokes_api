@@ -69,7 +69,7 @@ class Users extends Model{
 
         async addJokeToFavorite(userId, jokeId){
 
-                let queryString = `MATCH(user:User{id:{userId}}), (joke:Joke{id:{jokeId}}) MERGE (user)-[:FAVORITED{dateAdded: apoc.date.format(timestamp())}]->(joke) RETURN 1`;
+                let queryString = `MATCH(user:User{id:{userId}}), (joke:Joke{id:{jokeId}}) MERGE (user)-[fav:FAVORITED]->(joke) ON CREATE SET fav.dateAdded = apoc.date.format(timestamp())  RETURN 1`;
 
                 let result = await this.session.run(queryString, {userId:userId, jokeId: jokeId});
                 if(!_.isEmpty(result.records)){
