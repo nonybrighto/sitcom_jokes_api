@@ -22,17 +22,56 @@ class Users extends Model{
             const saltRounds = 10;
             let passwordHash = await bcrypt.hash(password, saltRounds)
             let userProp = {username:username, email:email, password:passwordHash};
+            let photoUrlString = '';
             if(photoUrl != null){
+                photoUrlString = ', photoUrl:{photoUrl}';
                 userProp.photoUrl = photoUrl;
             }
-           return await super.add({prop: userProp, takenFields:['id', 'username', 'email', 'password', 'photoUrl']});
+
+            let queryString = `CREATE(user:User{username:{username}, email:{email}, password:{password} ${photoUrlString}}) return user`;
+
+            let result = await this.session.run(queryString, userProp);
+            if(!_.isEmpty(result.records)){
+                return new UserEntity(result.records[0].get('user'), {takenFields:['id', 'username', 'email', 'password', 'photoUrl']});
+            }else{
+                return false;
+            }
 
         }
 
-        async getAllUsers(){
+        async getAllUsers(offset, limit){
 
-            let allUsers = await super.getAll();
-            return allUsers;
+            let queryString = `MATCH(user:User) RETURN user SKIP ${offset} LIMIT ${limit}`;
+
+            let result = await this.session.run(queryString);
+            if(!_.isEmpty(result.records)){
+              
+              let user  = result.records.map((result) => new UserEntity(result.get('user')));
+              return user;
+            }else{
+                return [];
+            }
+        }
+
+        async getAllUsersCount(){
+
+            let queryString = `MATCH(user:User) RETURN count(user) as count `;
+            let result = await this.session.run(queryString);
+            return result.records[0].get('count').toNumber();
+
+        }
+
+        async getUser(userId){
+
+            let queryString = `MATCH(user{id:{userId}}) RETURN user`;
+            let result = await this.session.run(queryString, {userId: userId});
+            if(!_.isEmpty(result.records)){
+                return new UserEntity(result.records[0].get('user'));
+            }else{
+                return false;
+            }
+
+
         }
 
         async getUserJokes(type, offset, limit, currentUserId,userId){

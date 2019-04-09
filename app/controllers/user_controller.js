@@ -9,12 +9,18 @@ const httpStatus = require('http-status');
 const Enums = require('../models/enums');
 
 module.exports.getAllUsers = async (req, res, next) => {
+
+    let page = req.query.page;
+    let perPage = req.query.perPage;
+
     try {
         let user = new Users(dbUtils.getSession());
-        let users = await user.getAllUsers();
-        res.json(users);
+        let userCount = await user.getAllUsersCount();
+        let pagination = new Pagination('url', userCount, page, perPage);
+        let gottenUsers = await user.getAllUsers(pagination.getOffset(), perPage);
+        return res.status(httpStatus.OK).send({...pagination.generatePaginationObject(), results: gottenUsers});
     } catch (err) {
-        next(err);
+        return next(new ApiError('Internal error occured while getting users', true));
     }
 }
 
@@ -51,6 +57,26 @@ module.exports.addNewUser = async (req, res, next) => {
         console.log(err);
         next(err);
     });
+
+}
+
+module.exports.getUser = async(req, res, next) => {
+
+        try{
+            let userId = req.params.userId;
+            let users = new Users(dbUtils.getSession());
+            let user = await users.getUser(userId);
+            if(user){
+                return res.status(httpStatus.OK).send(user);
+            }else{
+                return res.status(httpStatus.NOT_FOUND).send({message: 'The user could not be found'});
+            }
+
+
+        }catch(error){
+            return next(new ApiError('Internal error occured while getting user', true));
+        }
+
 
 }
 

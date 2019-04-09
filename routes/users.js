@@ -10,9 +10,12 @@ const paginationMiddleWare = require('../app/middlewares/pagination_middleware')
 
 router.route('/')
       //.get(UserController.getAllUsers)
-      .get(authMiddleWare.jwtAuthentication, UserController.getAllUsers)
+      .get([ paginationMiddleWare], UserController.getAllUsers)
       //.post(UserController.addNewUser);
       .post(validate(userValidator.createUser), UserController.addNewUser);
+
+router.route('/:userId')
+      .get(UserController.getUser);
 
 router.route('/:userId/jokes')
       .get([authMiddleWare.jwtAuthentication, paginationMiddleWare], UserController.getUserJokes)

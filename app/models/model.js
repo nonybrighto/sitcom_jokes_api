@@ -31,7 +31,7 @@ class Model{
 
         queryString += `${labelString}${propertyString}) ${toReturnString}`;
         let result = await this.session.run(queryString, obj.prop);
-        return new this.entity({node:result.records[0].get('mod'),  takenFields: objz.takenFields});
+        return new this.entity(result.records[0].get('mod'),  {takenFields: objz.takenFields});
 
     }
 
