@@ -224,12 +224,8 @@ class Users extends Model{
             }
 
             if(canCommit){
-                try{
                     await tx.commit();
                     return true;
-                }catch(err){
-                    return false;
-                }
             }
             return false;
 
