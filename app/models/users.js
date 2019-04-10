@@ -127,7 +127,7 @@ class Users extends Model{
             let queryString = `MATCH(user:User{id:{userId}})-[fav:FAVORITED]->(joke:Joke) , (owner)-[:ADDED]->(joke)-[:BELONGS_TO]->(movie) 
             OPTIONAL MATCH 
                     (userLike:User{id:{userId}})-[:LIKES]->(joke)
-            RETURN joke{.*, favorited:true, liked:count(userLike) > 0 }, owner, movie ORDER BY fav.dateAdded DESC SKIP ${offset} LIMIT ${limit}`;
+            RETURN joke{.*, favorited:true, liked:count(userLike) > 0 }, owner, movie, fav ORDER BY fav.dateAdded DESC SKIP ${offset} LIMIT ${limit}`;
 
 
             let result = await this.session.run(queryString, {userId: userId});

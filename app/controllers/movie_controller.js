@@ -2,7 +2,7 @@ const dbUtils = require('../helpers/db_utils');
 const Movies = require('../models/movies');
 const Jokes = require('../models/jokes');
 const ApiError = require('../helpers/api_error');
-const Pagination = require('../helpers/pagination');
+const GeneralHelper = require('../helpers/general_helper');
 const httpStatus = require('http-status');
 
 
@@ -28,22 +28,19 @@ module.exports.getMovie = async (req, res, next) => {
 
 
 module.exports.getMovieJokes = async (req, res, next) => {
-
+   
     try{
         let jokeType = req.query.type;
-        let page = req.query.page;
-        let perPage = req.query.perPage;
         let currentUserId = (req.user)? req.user.id: null;
         let movieId = req.params.movieId;
 
-
         let movie = new Movies(dbUtils.getSession());
         let jokes = new Jokes(dbUtils.getSession());
-        let jokesCount = await movie.getmovieJokesCount(movieId);
-        let pagination = new Pagination('url', jokesCount, page, perPage);
-        let gottenJokes = await jokes.getJokes(jokeType, pagination.getOffset(), perPage, currentUserId, {movieId: movieId});
-
-        return res.status(httpStatus.OK).send({...pagination.generatePaginationObject(), results: gottenJokes});
+        new GeneralHelper().buildMultiItemResponse(req, res, next, {
+            itemCount: await  movie.getmovieJokesCount(movieId),
+            getItems: async (offset, limit) => await jokes.getJokes(jokeType, offset, limit, currentUserId, {movieId: movieId}),
+            errorMessage: 'internal error occured while getting movie jokes' 
+        })
     }catch(error){
         return next(new ApiError('Internal error occured while getting movie jokes', true));
     }

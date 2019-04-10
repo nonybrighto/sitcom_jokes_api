@@ -1,27 +1,21 @@
 const dbUtils = require('../helpers/db_utils');
 const JwtHelper = require('../helpers/jwt_helper');
+const GeneralHelper = require('../helpers/general_helper');
 const Users = require('../models/users');
 const Jokes = require('../models/jokes');
 const PasswordTokens = require('../models/password_tokens');
-const Pagination = require('../helpers/pagination');
 const ApiError = require('../helpers/api_error');
 const httpStatus = require('http-status');
-const Enums = require('../models/enums');
 
 module.exports.getAllUsers = async (req, res, next) => {
 
-    let page = req.query.page;
-    let perPage = req.query.perPage;
 
-    try {
-        let user = new Users(dbUtils.getSession());
-        let userCount = await user.getAllUsersCount();
-        let pagination = new Pagination('url', userCount, page, perPage);
-        let gottenUsers = await user.getAllUsers(pagination.getOffset(), perPage);
-        return res.status(httpStatus.OK).send({...pagination.generatePaginationObject(), results: gottenUsers});
-    } catch (err) {
-        return next(new ApiError('Internal error occured while getting users', true));
-    }
+    let user = new Users(dbUtils.getSession());
+    new GeneralHelper().buildMultiItemResponse(req, res, next, {
+        itemCount: await user.getAllUsersCount(),
+        getItems: async (offset, limit) => await  user.getAllUsers(offset, limit),
+        errorMessage: 'internal error occured while getting users' 
+    });
 }
 
 module.exports.addNewUser = async (req, res, next) => {
@@ -84,23 +78,19 @@ module.exports.getUserFavoriteJokes = async(req, res, next) => {
 
         
         try{
-            let page = req.query.page;
-            let perPage = req.query.perPage;
             let currentUserId = req.user.id;
 
-
             let users = new Users(dbUtils.getSession());
-            let jokesCount = await users.getFavoriteJokesCount(currentUserId);
-            let pagination = new Pagination('url', jokesCount, page, perPage);
-            let gottenJokes = await users.getFavoriteJokes(currentUserId, pagination.getOffset(), perPage);
-
-            return res.status(httpStatus.OK).send({...pagination.generatePaginationObject(), results: gottenJokes});
-
+            new GeneralHelper().buildMultiItemResponse(req, res, next, {
+                itemCount: await users.getFavoriteJokesCount(currentUserId),
+                getItems: async (offset, limit) => await users.getFavoriteJokes(currentUserId, offset, limit),
+                errorMessage: 'internal error occured while getting user favorite jokes' 
+            })
 
 
         }catch(error){
-            return next(new ApiError('Internal error occured while getting jokes', true));
-        }
+            return next(new ApiError('Internal error occured while getting user favorite jokes', true));
+        }     
     
 }
 
@@ -109,20 +99,18 @@ module.exports.getUserJokes = async(req, res, next) => {
 
     try{
     let jokeType = req.query.type;
-    let page = req.query.page;
-    let perPage = req.query.perPage;
     let currentUserId = (req.user)? req.user.id: null;
     let userId = (req.params.userId)? req.params.userId: currentUserId;
 
 
     let users = new Users(dbUtils.getSession());
     let jokes = new Jokes(dbUtils.getSession());
-    let jokesCount = await users.getUserJokesCount(jokeType, userId);
-    let pagination = new Pagination('url', jokesCount, page, perPage);
-    // let gottenJokes = await users.getUserJokes(jokeType,pagination.getOffset(), perPage, currentUserId, userId);
-    let gottenJokes = await jokes.getJokes(jokeType, pagination.getOffset(), perPage, currentUserId, {userId: userId});
-
-    return res.status(httpStatus.OK).send({...pagination.generatePaginationObject(), results: gottenJokes});
+   
+            new GeneralHelper().buildMultiItemResponse(req, res, next, {
+                itemCount: await users.getUserJokesCount(jokeType, userId),
+                getItems: async (offset, limit) => await  jokes.getJokes(jokeType, offset, limit, currentUserId, {userId: userId}),
+                errorMessage: 'internal error occured while getting user  jokes' 
+            })
 
     }catch(error){
         return next(new ApiError('Internal error occured while getting user jokes', true));
