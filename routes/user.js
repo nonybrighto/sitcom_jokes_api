@@ -6,13 +6,10 @@ const paginationMiddleWare = require('../app/middlewares/pagination_middleware')
 
 
 router.route('/favorites/jokes')
-      .get([authMiddleWare.jwtAuthentication, paginationMiddleWare], UserController.getUserFavoriteJokes)
+      .get([authMiddleWare.jwtAuthentication, paginationMiddleWare], UserController.getUserFavoriteJokes) 
+           
 
-router.route('/liked/joke/:jokeId')
-      .put([authMiddleWare.jwtOptionalAuthentication],UserController.likeJoke)
-      .delete([authMiddleWare.jwtAuthentication],UserController.unlikeJoke)
-
-router.route('/favorited/joke/:jokeId')
+router.route('/favorites/jokes/:jokeId')
       .put([authMiddleWare.jwtAuthentication], UserController.addJokeToFavorite)
       .delete([authMiddleWare.jwtAuthentication], UserController.removeJokeFromFavorite)
 

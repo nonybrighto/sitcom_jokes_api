@@ -20,7 +20,9 @@ router.route('/:jokeId')
       .get(JokeController.getJoke);
       
 router.route('/:jokeId/likes')
-            .get([paginationMiddleWare],JokeController.getJokeLikers);
+            .get([paginationMiddleWare],JokeController.getJokeLikers)
+            .put([authMiddleWare.jwtOptionalAuthentication],JokeController.likeJoke)
+            .delete([authMiddleWare.jwtAuthentication],JokeController.unlikeJoke);
 
 router.route('/:jokeId/comments')
             .get([paginationMiddleWare], JokeController.getJokeComments)

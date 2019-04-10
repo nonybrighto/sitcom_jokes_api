@@ -111,6 +111,61 @@ class Jokes extends Model{
             }
         }
 
+        async likeJoke(jokeId, currentUserId){
+
+            let tx = this.session.beginTransaction(); 
+            let canCommit = true;
+            
+            if(currentUserId){
+                let userLikeQueryString = `MATCH(user:User{id:{userId}}), (joke:Joke{id:{jokeId}}) MERGE (user)-[like:LIKES]->(joke) ON CREATE SET like.dateAdded = apoc.date.format(timestamp()) RETURN 1`;
+                let userLikeresult = await tx.run(userLikeQueryString, {userId:currentUserId, jokeId: jokeId});
+                if(_.isEmpty(userLikeresult.records)){
+                    canCommit = false;
+                }
+            }
+
+                let increaseLikeCountString = `MATCH(joke:Joke{id:{jokeId}}) SET joke.likeCount = joke.likeCount + 1 RETURN 1`;
+                let increaseLikeResult = await tx.run(increaseLikeCountString, {jokeId: jokeId});
+                if(_.isEmpty(increaseLikeResult.records)){
+                    canCommit = false;
+                }
+           
+            if(canCommit){
+                await tx.commit();
+                return true;
+            }
+            return false;
+
+        }
+
+        async unlikeJoke(jokeId, currentUserId){
+
+            let tx = this.session.beginTransaction(); 
+            let canCommit = true;
+
+           
+                let userUnlikeQueryString = `MATCH(user:User{id:{userId}})-[like:LIKES]->(joke:Joke{id:{jokeId}}) DELETE like RETURN 1`;
+                let userUnlikeResult = await tx.run(userUnlikeQueryString, {userId:currentUserId, jokeId: jokeId});
+                if(!_.isEmpty(userUnlikeResult.records)){
+
+                    let decreaseLikeCountString = `MATCH(joke:Joke{id:{jokeId}}) SET joke.likeCount = joke.likeCount - 1 RETURN 1`;
+                    let decreaseLikeResult = await tx.run(decreaseLikeCountString, {jokeId: jokeId});
+                    if(_.isEmpty(decreaseLikeResult.records)){
+                        canCommit = false;
+                    }
+                    
+                }else{
+                    canCommit = false;
+                }
+
+            if(canCommit){
+                    await tx.commit();
+                    return true;
+            }
+            return false;
+
+        }
+
         async getJokeLikesCount(jokeId){
 
             let queryString = `MATCH (user:User)-[:LIKES]->(joke:Joke{id: {jokeId} }) RETURN count(user) as count`;
