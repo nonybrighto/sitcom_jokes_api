@@ -21,11 +21,16 @@ class Jokes extends Model{
             let generalHelper = new GeneralHelper();
 
             let jokeId = generalHelper.generateUuid(title, true);
-            let subJoke = (type == Enums.jokeTypesEnum.imageJoke)? 'ImageJoke': 'TextJoke';
+            let subJokeString = (type == Enums.jokeTypesEnum.imageJoke)? 'ImageJoke': 'TextJoke';
+            let countString = (type == Enums.jokeTypesEnum.imageJoke)? 'm.imageJokeCount': 'm.textJokeCount';
             let queryString = `MATCH(movie:Movie{id:{movieId}}), (owner:User{id:{userId}})
-                                CREATE(joke:Joke:${subJoke}{id:{jokeId}, title:{title}, content: {content}, likeCount: 0, commentCount: 0,  dateAdded: apoc.date.format(timestamp())}),
-                                (owner)-[:ADDED]->(joke)-[:BELONGS_TO]->(movie) RETURN joke,movie, owner
+                                CREATE(joke:Joke:${subJokeString}{id:{jokeId}, title:{title}, content: {content}, likeCount: 0, commentCount: 0,  dateAdded: apoc.date.format(timestamp())}),
+                                (owner)-[:ADDED]->(joke)-[:BELONGS_TO]->(movie) 
+                                WITH joke,movie, owner
+                                MATCH(m:Movie{id:{movieId}}) SET ${countString}  = ${countString} + 1 RETURN joke,movie, owner
                         `;
+            //let updateMovieCountQuery = `MATCH(movie:MovieId{id:{movieId}}) SET movie.textJokeCount = movie.textJokeCount + 1`;
+            
             let result = await this.session.run(queryString, {jokeId:jokeId, movieId: movieId, title:title, content: content, userId: userId});
             if(!_.isEmpty(result.records)){
 
