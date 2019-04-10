@@ -8,11 +8,13 @@ const httpStatus = require('http-status');
 
 module.exports.getMovie = async (req, res, next) => {
 
-    let id = req.params.movieId;
-
+   
     try{
+        let movieId = req.params.movieId;
+        let currentUserId = (req.user)?req.user.id: null;
+    
         let movie = new Movies(dbUtils.getSession());
-        let gottenMovie = await movie.getMovie(id);
+        let gottenMovie = await movie.getMovie(movieId, currentUserId);
 
         if(gottenMovie){
                 res.status(httpStatus.OK).send(gottenMovie);
@@ -22,6 +24,56 @@ module.exports.getMovie = async (req, res, next) => {
     }catch(err){
         return next(new ApiError('Internal error occured while getting movie', true));
     }
+
+
+}
+
+
+module.exports.followMovie = async (req, res, next) => {
+
+    try{
+
+        let currentUserId  = req.user.id;
+        let movieId = req.params.movieId;
+
+        let movies = new Movies(dbUtils.getSession());
+        let movieFollowed = await movies.isMovieFollowed(movieId, currentUserId);
+        
+        if(!movieFollowed){
+            let followed = await movies.followMovie(movieId, currentUserId);
+            if(followed){
+                return res.sendStatus(httpStatus.NO_CONTENT);
+            }else{
+                return res.status(httpStatus.NOT_FOUND).send({message: 'The movie could not be found'});
+            }
+        }else{
+            return next(new ApiError('Movie already followed', true,  httpStatus.CONFLICT));
+        }
+        
+    }catch(error){
+        return next(new ApiError('Internal error occured while following movie', true));
+    }  
+    
+}
+
+module.exports.unfollowMovie = async (req, res, next) => {
+    
+    try{
+        let currentUserId  = req.user.id;
+        let movieId = req.params.movieId;
+        
+        let movies = new Movies(dbUtils.getSession());
+        let unfollowed = await movies.unfollowMovie(movieId, currentUserId);
+        if(unfollowed){
+            return res.sendStatus(httpStatus.NO_CONTENT);
+        }else{
+            return res.status(httpStatus.NOT_FOUND).send({message: 'The movie could not be found'});
+        }
+
+    }catch(error){
+        return next(new ApiError('Internal error occured while unfollowing movie', true));
+    }
+
 
 
 }
