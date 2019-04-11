@@ -5,6 +5,10 @@ const authMiddleWare = require('../app/middlewares/auth_middleware');
 const paginationMiddleWare = require('../app/middlewares/pagination_middleware');
 
 
+
+router.route('/')
+      .get([ authMiddleWare.jwtOptionalAuthentication, paginationMiddleWare], MovieController.getMovies);
+
 router.route('/:movieId')
       .get([authMiddleWare.jwtOptionalAuthentication], MovieController.getMovie);
 

@@ -13,10 +13,16 @@ class Movies extends Model{
 
         async getMovie(movieId, currentUserId){
 
+            let followQueryString = '';
+            let followReturnString = '';
+            if(currentUserId){
+                followQueryString = ` OPTIONAL MATCH(currentUser:User{id:{currentUserId}})-[:FOLLOWS_MOVIE]->(movie) `;
+                followReturnString = `, followed: count(currentUser) > 0 `;
+            }
+
             let queryString = `MATCH (movie:Movie{id:{movieId}}) 
-                               OPTIONAL MATCH
-                               (currentUser:User{id:{currentUserId}})-[:FOLLOWS_MOVIE]->(movie)
-                               RETURN movie{.*, followed: count(currentUser) > 0 }`;
+                               ${followQueryString}
+                               RETURN movie{.* ${followReturnString}}`;
             let result = await this.session.run(queryString, {movieId: movieId, currentUserId: currentUserId});
 
             if(!_.isEmpty(result.records)){
@@ -27,12 +33,47 @@ class Movies extends Model{
             }
         }
 
+
+        async getMovies(currentUserId, offset, limit){
+
+            let followQueryString = '';
+            let followReturnString = '';
+            let paramObject = {};
+
+            if(currentUserId){
+                followQueryString = ` OPTIONAL MATCH(currentUser:User{id:{currentUserId}})-[:FOLLOWS_MOVIE]->(movie) `;
+                followReturnString = `, followed: count(currentUser) > 0`;
+                paramObject = {...paramObject, ...{currentUserId: currentUserId}};
+            }
+
+            let queryString = `MATCH(movie:Movie) 
+                               ${followQueryString}
+                               RETURN movie{.* ${followReturnString}} SKIP ${offset} LIMIT ${limit}`;
+            
+            let result = await this.session.run(queryString, paramObject);
+            if(!_.isEmpty(result.records)){
+                
+                let movies  = result.records.map((result) => new MovieEntity(result.get('movie')));
+                return movies;
+            }else{
+                return [];
+            }
+
+        }
+
+        async getmovieCount(){
+
+            let queryString = `MATCH(movie:Movie) RETURN count(movie) as count`;
+            let result = await this.session.run(queryString);
+            return result.records[0].get('count').toNumber();
+        }
+
         async followMovie(movieId, currentUserId){
 
             let tx = this.session.beginTransaction(); 
             let canCommit = true;
 
-            let followQuery = `MATCH(user:User{id:{currentUserId}}), (movie:Movie{id:{movieId}}) MERGE (user)-[follows:FOLLOWS]->(movie) ON CREATE SET follows.dateAdded = apoc.date.format(timestamp()) RETURN 1`;
+            let followQuery = `MATCH(user:User{id:{currentUserId}}), (movie:Movie{id:{movieId}}) MERGE (user)-[follows:FOLLOWS_MOVIE]->(movie) ON CREATE SET follows.dateAdded = apoc.date.format(timestamp()) RETURN 1`;
             
             let followQueryResult = await tx.run(followQuery, {currentUserId:currentUserId, movieId: movieId});
             if(!_.isEmpty(followQueryResult.records)){
@@ -60,7 +101,7 @@ class Movies extends Model{
             let tx = this.session.beginTransaction(); 
             let canCommit = true;
 
-            let unfollowQuery = `MATCH(user:User{id:{currentUserId}})-[follows:FOLLOWS]->(movie:Movie{id:{movieId}}) DELETE follows RETURN 1`;
+            let unfollowQuery = `MATCH(user:User{id:{currentUserId}})-[follows:FOLLOWS_MOVIE]->(movie:Movie{id:{movieId}}) DELETE follows RETURN 1`;
             
             let unfollowQueryResult = await tx.run(unfollowQuery, {currentUserId:currentUserId, movieId: movieId});
             if(!_.isEmpty(unfollowQueryResult.records)){
@@ -90,7 +131,7 @@ class Movies extends Model{
 
         async isMovieFollowed(movieId, userId){
 
-            let queryString = `MATCH(user:User{id:{userId}})-[:FOLLOWS]->(movie:Movie{id:{movieId}}) RETURN 1`;
+            let queryString = `MATCH(user:User{id:{userId}})-[:FOLLOWS_MOVIE]->(movie:Movie{id:{movieId}}) RETURN 1`;
             let result = await this.session.run(queryString, {movieId: movieId, userId: userId});
 
             if(_.isEmpty(result.records)){

@@ -6,6 +6,23 @@ const GeneralHelper = require('../helpers/general_helper');
 const httpStatus = require('http-status');
 
 
+module.exports.getMovies = async (req, res, next) => {
+
+    try{
+
+        let currentUserId = (req.user)?req.user.id: null;
+
+        let movies = new Movies(dbUtils.getSession());
+        new GeneralHelper().buildMultiItemResponse(req, res, next, {
+            itemCount: await movies.getmovieCount(),
+            getItems: async (offset, limit) => await  movies.getMovies(currentUserId, offset, limit),
+            errorMessage: 'internal error occured while getting movies' 
+        });
+    }catch(err){
+        return next(new ApiError('Internal error occured while getting movies', true));
+    }
+}
+
 module.exports.getMovie = async (req, res, next) => {
 
    
@@ -13,8 +30,8 @@ module.exports.getMovie = async (req, res, next) => {
         let movieId = req.params.movieId;
         let currentUserId = (req.user)?req.user.id: null;
     
-        let movie = new Movies(dbUtils.getSession());
-        let gottenMovie = await movie.getMovie(movieId, currentUserId);
+        let movies = new Movies(dbUtils.getSession());
+        let gottenMovie = await movies.getMovie(movieId, currentUserId);
 
         if(gottenMovie){
                 res.status(httpStatus.OK).send(gottenMovie);
