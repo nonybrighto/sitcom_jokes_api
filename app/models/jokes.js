@@ -42,12 +42,19 @@ class Jokes extends Model{
         }
         async getJokes(type, offset, limit, currentUserId, {movieId, userId}={}){
 
-            let likeQueryString  = (currentUserId) ? `OPTIONAL MATCH 
-                    (currentUserFav:User{id:{currentUserId}})-[:FAVORITED]->(joke) 
-                    OPTIONAL MATCH 
-                    (currentUserLike:User{id:{currentUserId}})-[:LIKES]->(joke) `: '';
-            let likeReturnString = (currentUserId)?'favorited:count(currentUserFav) > 0, liked:count(currentUserLike) > 0,':'';
-            let paramObject = (currentUserId)?{currentUserId: currentUserId}: {};
+            let likeQueryString  = '';
+            let likeReturnString = '';
+            let paramObject = {};
+
+            if(currentUserId){
+                likeQueryString = `OPTIONAL MATCH 
+                            (currentUserFav:User{id:{currentUserId}})-[:FAVORITED]->(joke) 
+                            OPTIONAL MATCH 
+                            (currentUserLike:User{id:{currentUserId}})-[:LIKES]->(joke) `;
+                likeReturnString = `,favorited:count(currentUserFav) > 0, liked:count(currentUserLike) > 0`;
+                paramObject = {...paramObject, ...{currentUserId: currentUserId}};
+
+            }
 
             let movieString = (movieId)?'{id:{movieId}}':'';
                 paramObject = (movieId)? {...paramObject, ...{movieId: movieId}} : paramObject;
@@ -60,7 +67,7 @@ class Jokes extends Model{
             let queryString = `MATCH(joke:Joke:${subJoke}), 
                                (owner:User${userString})-[:ADDED]->(joke)-[:BELONGS_TO]->(movie:Movie${movieString})
                                 ${likeQueryString}
-                                RETURN joke{.*, ${likeReturnString} jokeType: labels(joke)}, owner, movie SKIP ${offset} LIMIT ${limit}`;
+                                RETURN joke{.*, jokeType: labels(joke) ${likeReturnString} }, owner, movie SKIP ${offset} LIMIT ${limit}`;
 
             let result = await this.session.run(queryString, paramObject);
             if(!_.isEmpty(result.records)){
