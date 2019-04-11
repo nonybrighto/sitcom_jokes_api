@@ -122,9 +122,11 @@ class Users extends Model{
         }
 
 
-        async getFavoriteJokes(userId, offset, limit){
+        async getFavoriteJokes(jokeType, userId, offset, limit){
 
-            let queryString = `MATCH(user:User{id:{userId}})-[fav:FAVORITED]->(joke:Joke) , (owner)-[:ADDED]->(joke)-[:BELONGS_TO]->(movie) 
+            let subJoke = (jokeType == Enums.jokeTypesEnum.imageJoke)? 'ImageJoke': 'TextJoke';
+
+            let queryString = `MATCH(user:User{id:{userId}})-[fav:FAVORITED]->(joke:Joke:${subJoke}) , (owner)-[:ADDED]->(joke)-[:BELONGS_TO]->(movie) 
             OPTIONAL MATCH 
                     (userLike:User{id:{userId}})-[:LIKES]->(joke)
             RETURN joke{.*, favorited:true, liked:count(userLike) > 0 }, owner, movie, fav ORDER BY fav.dateAdded DESC SKIP ${offset} LIMIT ${limit}`;
@@ -141,9 +143,6 @@ class Users extends Model{
             }else{
                 return [];
             }
-
-
-
         }
 
         async addJokeToFavorite(userId, jokeId){

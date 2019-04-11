@@ -79,11 +79,12 @@ module.exports.getUserFavoriteJokes = async(req, res, next) => {
         
         try{
             let currentUserId = req.user.id;
+            let jokeType = req.query.type;
 
             let users = new Users(dbUtils.getSession());
             new GeneralHelper().buildMultiItemResponse(req, res, next, {
                 itemCount: await users.getFavoriteJokesCount(currentUserId),
-                getItems: async (offset, limit) => await users.getFavoriteJokes(currentUserId, offset, limit),
+                getItems: async (offset, limit) => await users.getFavoriteJokes(jokeType, currentUserId, offset, limit),
                 errorMessage: 'internal error occured while getting user favorite jokes' 
             })
 
