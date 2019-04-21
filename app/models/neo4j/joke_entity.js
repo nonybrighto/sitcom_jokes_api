@@ -16,6 +16,9 @@ class JokeEntity extends Entity{
         if(this.jokeType == Enum.jokeTypesEnum.imageJoke){
             this.content = nconf.get('base-url')+this.content;
         }
+        if(this.jokeType == Enum.jokeTypesEnum.imageJoke){
+            this.imageUrl = nconf.get('base-url')+this.imageUrl;
+        }
    }
 
    getJokeType(labels = []){
