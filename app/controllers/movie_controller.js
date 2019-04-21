@@ -99,7 +99,6 @@ module.exports.unfollowMovie = async (req, res, next) => {
 module.exports.getMovieJokes = async (req, res, next) => {
    
     try{
-        let jokeType = req.query.type;
         let currentUserId = (req.user)? req.user.id: null;
         let movieId = req.params.movieId;
 
@@ -107,7 +106,7 @@ module.exports.getMovieJokes = async (req, res, next) => {
         let jokes = new Jokes(dbUtils.getSession());
         new GeneralHelper().buildMultiItemResponse(req, res, next, {
             itemCount: await  movie.getmovieJokesCount(movieId),
-            getItems: async (offset, limit) => await jokes.getJokes(jokeType, offset, limit, currentUserId, {movieId: movieId}),
+            getItems: async (offset, limit) => await jokes.getJokes(offset, limit, currentUserId, {movieId: movieId}),
             errorMessage: 'internal error occured while getting movie jokes' 
         })
     }catch(error){

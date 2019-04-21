@@ -4,62 +4,46 @@ const Comments = require('../models/comments');
 const ApiError = require('../helpers/api_error');
 const GeneralHelper = require('../helpers/general_helper');
 const httpStatus = require('http-status');
-const Enums = require('../models/enums');
 
 
 module.exports.addJoke = async (req, res, next) => {
     
     let userId = req.user.id;
-    let type = req.body.type;
     let title = req.body.title;
     let movieId = req.body.movie;
-    //let content = (type ==  Enums.jokeTypesEnum.textJoke) ? req.body.text : '';
-    let content = req.body.content;
+    let text = req.body.text;
+    let image;
 
-    let saveJoke = false;
-
-    if(type == Enums.jokeTypesEnum.imageJoke){
-        if(req.file){
-            content = req.file.destination+req.file.filename;
-            saveJoke = true;
-        }else{
-            return next(new ApiError('no image specified', true, httpStatus.UNPROCESSABLE_ENTITY));
-        }
-    }else{
-        saveJoke = true;
-    } 
-
-    if(saveJoke){
+    if(req.file){
+        image = req.file.destination+req.file.filename;
+    }
+    
         let joke = new Jokes(dbUtils.getSession());
         try{
-            let jokeAdded = await joke.addJoke(type, title, movieId, content, userId);
+            let jokeAdded = await joke.addJoke(title, movieId, text, image, userId);
             
             if(jokeAdded){
                 return res.status(httpStatus.CREATED).send(jokeAdded);
             }else{
-                return next(new ApiError('Internal error occured adding joke', true));
+                return next(new ApiError('Internal error occured while adding joke', true));
             }
         }catch(err){
-            return next(new ApiError('Internal error occured adding joke', true));
+            return next(new ApiError('Internal error occured while adding joke', true));
         } 
-    }
-    return next(new ApiError('Internal error occured adding joke', true));
-    
-    
+
 }
 
 module.exports.getJokes = async (req, res, next) => {
 
     try{
-    let jokeType = req.query.type;
     let currentUserId = (req.user)? req.user.id: null;
     let movieId = req.query.movie;
 
 
         let joke = new Jokes(dbUtils.getSession());
         new GeneralHelper().buildMultiItemResponse(req, res, next, {
-            itemCount: await joke.getJokesCount(jokeType),
-            getItems: async (offset, limit) => await  joke.getJokes(jokeType, offset, limit, currentUserId, movieId),
+            itemCount: await joke.getJokesCount(),
+            getItems: async (offset, limit) => await  joke.getJokes(offset, limit, currentUserId, movieId),
             errorMessage: 'internal error occured while getting jokes' 
         })
 

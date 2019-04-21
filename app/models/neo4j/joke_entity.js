@@ -1,6 +1,5 @@
 var _ = require('lodash');
 const Entity = require('./entity');
-const Enum = require('./../../models/enums');
 var nconf = require('./../../../config/config');
 
 class JokeEntity extends Entity{
@@ -12,22 +11,10 @@ class JokeEntity extends Entity{
         this.favorited =  this.favorited || false; 
         this.owner = owner;
         this.movie = movie;
-        this.jokeType = this.getJokeType(this.jokeType || jokeModelProperties.labels);
-        if(this.jokeType == Enum.jokeTypesEnum.imageJoke){
-            this.content = nconf.get('base-url')+this.content;
-        }
-        if(this.jokeType == Enum.jokeTypesEnum.imageJoke){
+        if(this.imageUrl){
             this.imageUrl = nconf.get('base-url')+this.imageUrl;
         }
    }
-
-   getJokeType(labels = []){
-            return labels.includes('ImageJoke')? Enum.jokeTypesEnum.imageJoke:Enum.jokeTypesEnum.textJoke; 
-   }
-
-
-
-
 }
 
 module.exports = JokeEntity;

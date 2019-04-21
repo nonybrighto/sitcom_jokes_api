@@ -79,12 +79,11 @@ module.exports.getUserFavoriteJokes = async(req, res, next) => {
         
         try{
             let currentUserId = req.user.id;
-            let jokeType = req.query.type;
-
+            
             let users = new Users(dbUtils.getSession());
             new GeneralHelper().buildMultiItemResponse(req, res, next, {
                 itemCount: await users.getFavoriteJokesCount(currentUserId),
-                getItems: async (offset, limit) => await users.getFavoriteJokes(jokeType, currentUserId, offset, limit),
+                getItems: async (offset, limit) => await users.getFavoriteJokes(currentUserId, offset, limit),
                 errorMessage: 'internal error occured while getting user favorite jokes' 
             })
 
@@ -99,7 +98,6 @@ module.exports.getUserFavoriteJokes = async(req, res, next) => {
 module.exports.getUserJokes = async(req, res, next) => {
 
     try{
-    let jokeType = req.query.type;
     let currentUserId = (req.user)? req.user.id: null;
     let userId = (req.params.userId)? req.params.userId: currentUserId;
 
@@ -108,8 +106,8 @@ module.exports.getUserJokes = async(req, res, next) => {
     let jokes = new Jokes(dbUtils.getSession());
    
             new GeneralHelper().buildMultiItemResponse(req, res, next, {
-                itemCount: await users.getUserJokesCount(jokeType, userId),
-                getItems: async (offset, limit) => await  jokes.getJokes(jokeType, offset, limit, currentUserId, {userId: userId}),
+                itemCount: await users.getUserJokesCount(userId),
+                getItems: async (offset, limit) => await  jokes.getJokes(offset, limit, currentUserId, {userId: userId}),
                 errorMessage: 'internal error occured while getting user  jokes' 
             })
 

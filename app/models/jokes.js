@@ -4,7 +4,6 @@ const JokeEntity = require('./neo4j/joke_entity');
 const UserEntity = require('./neo4j/user_entity');
 const MovieEntity = require('./neo4j/movie_entity');
 const GeneralHelper = require('./../helpers/general_helper');
-const Enums = require('./../models/enums');
 
 
 
@@ -16,22 +15,32 @@ class Jokes extends Model{
             this.uuidProp = 'title';
         }
 
-        async addJoke(type, title, movieId, content, userId) {
+        async addJoke(title, movieId, text, image, userId) {
           
             let generalHelper = new GeneralHelper();
 
+            let imageString = '';
+            let imageObject = {};
+            let textString = '';
+            let textObject = {};
+            if(image){
+                imageString = ', imageUrl:{imageUrl}';
+                imageObject = {imageUrl: image};
+            }
+            if(text){
+                textString = ', text:{text}';
+                textObject = {text: text};
+            }
+
             let jokeId = generalHelper.generateUuid(title, true);
-            let subJokeString = (type == Enums.jokeTypesEnum.imageJoke)? 'ImageJoke': 'TextJoke';
-            let countString = (type == Enums.jokeTypesEnum.imageJoke)? 'm.imageJokeCount': 'm.textJokeCount';
             let queryString = `MATCH(movie:Movie{id:{movieId}}), (owner:User{id:{userId}})
-                                CREATE(joke:Joke:${subJokeString}{id:{jokeId}, title:{title}, content: {content}, likeCount: 0, commentCount: 0,  dateAdded: apoc.date.format(timestamp())}),
+                                CREATE(joke:Joke{id:{jokeId}, title:{title}, likeCount: 0, commentCount: 0,  dateAdded: apoc.date.format(timestamp()) ${imageString} ${textString}}),
                                 (owner)-[:ADDED]->(joke)-[:BELONGS_TO]->(movie) 
                                 WITH joke,movie, owner
-                                MATCH(m:Movie{id:{movieId}}) SET ${countString}  = ${countString} + 1 RETURN joke,movie, owner
+                                MATCH(m:Movie{id:{movieId}}) SET m.jokeCount  = m.jokeCount + 1 RETURN joke,movie, owner
                         `;
-            //let updateMovieCountQuery = `MATCH(movie:MovieId{id:{movieId}}) SET movie.textJokeCount = movie.textJokeCount + 1`;
             
-            let result = await this.session.run(queryString, {jokeId:jokeId, movieId: movieId, title:title, content: content, userId: userId});
+            let result = await this.session.run(queryString, {jokeId:jokeId, movieId: movieId, title:title, text: text, userId: userId, ...imageObject, ...textObject});
             if(!_.isEmpty(result.records)){
 
                 let joke =  new JokeEntity(result.records[0].get('joke'), {owner: new UserEntity(result.records[0].get('owner')), movie: new MovieEntity(result.records[0].get('movie'))});
@@ -40,7 +49,7 @@ class Jokes extends Model{
                 return false;
             }
         }
-        async getJokes(type, offset, limit, currentUserId, {movieId, userId}={}){
+        async getJokes(offset, limit, currentUserId, {movieId, userId}={}){
 
             let likeQueryString  = '';
             let likeReturnString = '';
@@ -62,12 +71,10 @@ class Jokes extends Model{
             let userString = (userId)?'{id:{userId}}':'';
                 paramObject = (userId)? {...paramObject, ...{userId: userId}} : paramObject;
 
-            let subJoke = (type == Enums.jokeTypesEnum.imageJoke)? 'ImageJoke': 'TextJoke';
-           
-            let queryString = `MATCH(joke:Joke:${subJoke}), 
+            let queryString = `MATCH(joke:Joke), 
                                (owner:User${userString})-[:ADDED]->(joke)-[:BELONGS_TO]->(movie:Movie${movieString})
                                 ${likeQueryString}
-                                RETURN joke{.*, jokeType: labels(joke) ${likeReturnString} }, owner, movie SKIP ${offset} LIMIT ${limit}`;
+                                RETURN joke{.* ${likeReturnString} }, owner, movie  ORDER BY joke.dateAdded DESC SKIP ${offset} LIMIT ${limit}`;
 
             let result = await this.session.run(queryString, paramObject);
             if(!_.isEmpty(result.records)){
@@ -81,10 +88,9 @@ class Jokes extends Model{
             }
         }
 
-        async getJokesCount(type){
-            let subJoke = (type == Enums.jokeTypesEnum.imageJoke)? 'ImageJoke': 'TextJoke';
-            let queryString = `MATCH(jokes:Joke:${subJoke}) RETURN count(jokes) as count`;
-            let result = await this.session.run(queryString, {subJoke: subJoke});
+        async getJokesCount(){
+            let queryString = `MATCH(jokes:Joke) RETURN count(jokes) as count`;
+            let result = await this.session.run(queryString);
 
             return result.records[0].get('count').toNumber();
 

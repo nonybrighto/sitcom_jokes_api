@@ -13,7 +13,7 @@ const fileUploader = new FileUploader();
 
 router.route('/')
       .get([paginationMiddleWare, authMiddleWare.jwtOptionalAuthentication], JokeController.getJokes)                 
-      .post([fileUploader.imageUploadMiddleWare({bodyValid:jokeValidator.jokeBodyValidForUpload , fieldName: 'content' }), authMiddleWare.jwtAuthentication, validate(jokeValidator.createJoke)], JokeController.addJoke);
+      .post([fileUploader.imageUploadMiddleWare({bodyValid:jokeValidator.jokeBodyValidForUpload}), authMiddleWare.jwtAuthentication, validate(jokeValidator.createJoke)], JokeController.addJoke);
 
       
 router.route('/:jokeId')
