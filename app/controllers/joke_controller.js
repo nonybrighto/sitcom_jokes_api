@@ -3,6 +3,7 @@ const Jokes = require('../models/jokes');
 const Comments = require('../models/comments');
 const ApiError = require('../helpers/api_error');
 const GeneralHelper = require('../helpers/general_helper');
+const _ = require('lodash');
 const httpStatus = require('http-status');
 
 
@@ -14,7 +15,13 @@ module.exports.addJoke = async (req, res, next) => {
     let text = req.body.text;
     let image;
 
-    if(req.file){
+    let imageFile = req.file;
+
+    if(text === null &&  imageFile === null ){
+        return next(new ApiError('Internal error occured while adding joke', true, httpStatus.UNPROCESSABLE_ENTITY));
+    }
+
+    if(imageFile){
         image = req.file.destination+req.file.filename;
     }
     
