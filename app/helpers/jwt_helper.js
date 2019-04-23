@@ -1,22 +1,16 @@
 const jwt = require('jsonwebtoken');
 const nconf = require('../../config/config');
+var _ = require('lodash');
 
 //TODONOW: control how long it takes for a token to expire
 class JwtHelper{
 
     constructor(){
-        this.userObjectProp = ['id', 'username', 'email', 'photoUrl'];
+        this.propToRemove = ['password'];
     }
     getJwtUserObject(user){
 
-        let jwtUserObject = {}
-        //console.log(user);
-        this.userObjectProp.forEach((prop)=>{
-           // console.log(prop);
-            //console.log(user[prop]);
-            jwtUserObject[prop] = user[prop];
-        });
-        
+        let jwtUserObject = _.omit(user, this.propToRemove);
         return jwtUserObject;
     }
 
