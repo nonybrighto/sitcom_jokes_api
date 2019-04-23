@@ -7,7 +7,9 @@ class Entity{
             let nodeProperties = (this.isNode(modelProperties))? modelProperties.properties : modelProperties;
 
             if(takenFields){
-                nodeProperties = _.pick(nodeProperties, takenFields);
+                if(!(takenFields[0] === '*')){ //wildcard to take all fields available
+                    nodeProperties = _.pick(nodeProperties, takenFields);
+                }
             }else if(hiddenFields){
                 nodeProperties = _.omit(nodeProperties, hiddenFields);
             }

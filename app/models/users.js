@@ -29,7 +29,7 @@ class Users extends Model{
 
             let result = await this.session.run(queryString, userProp);
             if(!_.isEmpty(result.records)){
-                return new UserEntity(result.records[0].get('user'), {takenFields:['id', 'username', 'email', 'password', 'photoUrl']});
+                return new UserEntity(result.records[0].get('user'), {takenFields:['*']});
             }else{
                 return false;
             }
@@ -168,14 +168,15 @@ class Users extends Model{
 
         async canLogin(credential, password){
 
-            //TODO:allow both username and email login
             let emailHelper = new EmailHelper();
             let user = '';
+            let prop = {};
             if(emailHelper.isValidEmail(credential)){
-                user = await super.get({prop:{email:credential}, takenFields:['id', 'username', 'email', 'password', 'photoUrl']});
+                prop = {email:credential};
             }else{
-                user = await super.get({prop:{username:credential}, takenFields:['id','username', 'email', 'password', 'photoUrl']});
+               prop = {username:credential};
             }
+            user = await super.get({prop: prop, takenFields:['*']});
             if(user){
                 let passwordHash = user.password;
                 let passwordMatch = await bcrypt.compare(password, passwordHash);
