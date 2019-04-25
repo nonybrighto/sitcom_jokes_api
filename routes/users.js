@@ -15,7 +15,17 @@ router.route('/')
       .post(validate(userValidator.createUser), UserController.addNewUser);
 
 router.route('/:userId')
-      .get(UserController.getUser);
+      .get([authMiddleWare.jwtOptionalAuthentication], UserController.getUser);
+
+router.route('/:userId/followers')
+      .get([ paginationMiddleWare, authMiddleWare.jwtOptionalAuthentication],UserController.getUserFollowers)
+      .put([authMiddleWare.jwtAuthentication],UserController.followUser)
+      .delete([authMiddleWare.jwtAuthentication],UserController.unfollowUser);
+
+router.route('/:userId/following')
+      .get([ paginationMiddleWare, authMiddleWare.jwtOptionalAuthentication],UserController.getUserFollowing);
+
+
 
 router.route('/:userId/jokes')
       .get([authMiddleWare.jwtAuthentication, paginationMiddleWare], UserController.getUserJokes)

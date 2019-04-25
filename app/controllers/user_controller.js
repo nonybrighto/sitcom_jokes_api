@@ -58,8 +58,9 @@ module.exports.getUser = async(req, res, next) => {
 
         try{
             let userId = req.params.userId;
+            let currentUserId = (req.user)?req.user.id: null;
             let users = new Users(dbUtils.getSession());
-            let user = await users.getUser(userId);
+            let user = await users.getUser(userId, currentUserId);
             if(user){
                 return res.status(httpStatus.OK).send(user);
             }else{
@@ -70,6 +71,92 @@ module.exports.getUser = async(req, res, next) => {
         }catch(error){
             return next(new ApiError('Internal error occured while getting user', true));
         }
+
+
+}
+module.exports.getUserFollowers = async(req, res, next) => {
+
+        try{
+            let userId = req.params.userId;
+            let currentUserId = (req.user)?req.user.id: null;
+
+            let user = new Users(dbUtils.getSession());
+            new GeneralHelper().buildMultiItemResponse(req, res, next, {
+                itemCount: await user.getUserFollowersCount(userId),
+                getItems: async (offset, limit) => await  user.getUserFollowers(userId, currentUserId, offset, limit),
+                errorMessage: 'internal error occured while getting users' 
+            });
+
+        }catch(error){
+            return next(new ApiError('Internal error occured while getting user', true));
+        }
+
+
+}
+module.exports.getUserFollowing = async(req, res, next) => {
+
+        try{
+            let userId = req.params.userId;
+            let currentUserId = (req.user)?req.user.id: null;
+
+            let user = new Users(dbUtils.getSession());
+            new GeneralHelper().buildMultiItemResponse(req, res, next, {
+                itemCount: await user.getUserFollowingCount(userId),
+                getItems: async (offset, limit) => await  user.getUserFollowing(userId,currentUserId, offset, limit),
+                errorMessage: 'internal error occured while getting users' 
+            });
+
+        }catch(error){
+            return next(new ApiError('Internal error occured while getting user', true));
+        }
+
+}
+
+module.exports.followUser = async (req, res, next) => {
+
+    try{
+
+        let currentUserId  = req.user.id;
+        let userId = req.params.userId;
+
+        let users = new Users(dbUtils.getSession());
+        let userFollowed = await users.isUserFollowed(userId, currentUserId);
+        
+        if(!userFollowed){
+            let followed = await users.followUser(userId, currentUserId);
+            if(followed){
+                return res.sendStatus(httpStatus.NO_CONTENT);
+            }else{
+                return res.status(httpStatus.NOT_FOUND).send({message: 'The user could not be found'});
+            }
+        }else{
+            return next(new ApiError('User already followed', true,  httpStatus.CONFLICT));
+        }
+        
+    }catch(error){
+        return next(new ApiError('Internal error occured while following user', true));
+    }  
+    
+}
+
+module.exports.unfollowUser = async (req, res, next) => {
+    
+    try{
+        let currentUserId  = req.user.id;
+        let userId = req.params.userId;
+        
+        let users = new Users(dbUtils.getSession());
+        let unfollowed = await users.unfollowUser(userId, currentUserId);
+        if(unfollowed){
+            return res.sendStatus(httpStatus.NO_CONTENT);
+        }else{
+            return res.status(httpStatus.NOT_FOUND).send({message: 'The user could not be found'});
+        }
+
+    }catch(error){
+        return next(new ApiError('Internal error occured while unfollowing user', true));
+    }
+
 
 
 }
