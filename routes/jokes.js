@@ -15,6 +15,9 @@ router.route('/')
       .get([paginationMiddleWare, authMiddleWare.jwtOptionalAuthentication], JokeController.getJokes)                 
       .post([fileUploader.imageUploadMiddleWare({bodyValid:jokeValidator.jokeBodyValidForUpload}), authMiddleWare.jwtAuthentication, validate(jokeValidator.createJoke)], JokeController.addJoke);
 
+
+router.route('/popular')
+      .get([paginationMiddleWare, authMiddleWare.jwtOptionalAuthentication], JokeController.getJokes);
       
 router.route('/:jokeId')
       .get(JokeController.getJoke);

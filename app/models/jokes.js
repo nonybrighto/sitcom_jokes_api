@@ -49,11 +49,16 @@ class Jokes extends Model{
                 return false;
             }
         }
-        async getJokes(offset, limit, currentUserId, {movieId, userId}={}){
+        async getJokes(offset, limit, currentUserId, {movieId, userId, popular}={}){
 
             let likeQueryString  = '';
             let likeReturnString = '';
             let paramObject = {};
+
+            let orderString = ' ORDER BY joke.dateAdded DESC ';
+            if(popular){
+                    orderString = ' ORDER BY joke.likeCount DESC '
+            }
 
             if(currentUserId){
                 likeQueryString = `OPTIONAL MATCH 
@@ -74,7 +79,7 @@ class Jokes extends Model{
             let queryString = `MATCH(joke:Joke), 
                                (owner:User${userString})-[:ADDED]->(joke)-[:BELONGS_TO]->(movie:Movie${movieString})
                                 ${likeQueryString}
-                                RETURN joke{.* ${likeReturnString} }, owner, movie  ORDER BY joke.dateAdded DESC SKIP ${offset} LIMIT ${limit}`;
+                                RETURN joke{.* ${likeReturnString} }, owner, movie  ${orderString} SKIP ${offset} LIMIT ${limit}`;
 
             let result = await this.session.run(queryString, paramObject);
             if(!_.isEmpty(result.records)){

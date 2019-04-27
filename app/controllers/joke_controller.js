@@ -44,13 +44,13 @@ module.exports.getJokes = async (req, res, next) => {
 
     try{
     let currentUserId = (req.user)? req.user.id: null;
-    let movieId = req.query.movie;
+    let popular = (req.path === '/popular');
 
 
         let joke = new Jokes(dbUtils.getSession());
         new GeneralHelper().buildMultiItemResponse(req, res, next, {
             itemCount: await joke.getJokesCount(),
-            getItems: async (offset, limit) => await  joke.getJokes(offset, limit, currentUserId, movieId),
+            getItems: async (offset, limit) => await  joke.getJokes(offset, limit, currentUserId, {popular: popular}),
             errorMessage: 'internal error occured while getting jokes' 
         })
 
