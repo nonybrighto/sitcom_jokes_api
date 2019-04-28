@@ -74,6 +74,25 @@ module.exports.getUser = async(req, res, next) => {
 
 
 }
+module.exports.getCurrentUser = async(req, res, next) => {
+
+        try{
+            let currentUserId = req.user.id;
+            let users = new Users(dbUtils.getSession());
+            let user = await users.getCurrentUser(currentUserId);
+            if(user){
+                return res.status(httpStatus.OK).send(user);
+            }else{
+                return res.status(httpStatus.NOT_FOUND).send({message: 'The user could not be found'});
+            }
+
+
+        }catch(error){
+            return next(new ApiError('Internal error occured while getting user', true));
+        }
+
+
+}
 module.exports.getUserFollowers = async(req, res, next) => {
 
         try{

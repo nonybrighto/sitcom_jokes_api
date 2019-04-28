@@ -7,6 +7,9 @@ router
   .route('/login')
   .post(authMiddleware.loginLimiter,AuthController.login);
 
+router.route('/refresh')
+      .get(authMiddleware.jwtAuthentication, AuthController.refreshUserToken);
+
 //post request should contain id_token and access_token
 router.post('/google/token', AuthController.googleIdTokenAuth);
 //facebook's post body should contain access_token and optionally, refresh_token 

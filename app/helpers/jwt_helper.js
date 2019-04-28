@@ -17,17 +17,22 @@ class JwtHelper{
     generateJwtToken(user) {
         
         let jwtUser = this.getJwtUserObject(user);
+        let expireDays = nconf.get('jwt_token-expire-days');
 
         return jwt.sign(
             jwtUser,
             nconf.get('jwt-secret'),
-            {expiresIn: '10 days'}
+            {expiresIn: expireDays+' days'}
         );
     }
 
     sendJwtResponse(res, user, status = 200){
         console.log(user);
-        res.status(status).send({token: this.generateJwtToken(user), user: this.getJwtUserObject(user)})
+        let expireDays = nconf.get('jwt_token-expire-days');
+        let expirationDate = new Date();
+        expirationDate.setDate(new Date().getDate() + expireDays);
+        
+        res.status(status).send({token: this.generateJwtToken(user), tokenExpires: expirationDate, user: this.getJwtUserObject(user)})
     }
 }
 

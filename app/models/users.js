@@ -83,6 +83,19 @@ class Users extends Model {
 
 
     }
+
+    async getCurrentUser(currentUserId){
+
+        let queryString = `MATCH(user{id:{currentUserId}}) 
+                           RETURN user`;
+        let result = await this.session.run(queryString, { currentUserId: currentUserId });
+        if (!_.isEmpty(result.records)) {
+            return new UserEntity(result.records[0].get('user'), {hiddenFields: ['password']});
+        } else {
+            return false;
+        }
+    }
+
     async getUserFollowers(userId, currentUserId, offset, limit) {
 
         let followQueryString = '';

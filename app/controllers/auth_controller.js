@@ -1,6 +1,9 @@
 const JwtHelper = require('../helpers/jwt_helper');
+const ApiError = require('../helpers/api_error');
 const passport = require('passport');
 let httpStatus = require('http-status');
+const Users = require('../models/users');
+const dbUtils = require('../helpers/db_utils');
 
 
 module.exports.login = (req, res, next) => {
@@ -53,4 +56,21 @@ module.exports.facebookTokenAuth = (req, res, next) => {
             jwtHelper.sendJwtResponse(res, user);
         })(req, res, next);
 
+}
+
+module.exports.refreshUserToken =  async (req, res, next) => {
+        try{
+            let currentUserId = req.user.id;
+            let users = new Users(dbUtils.getSession());
+            let user = await users.getCurrentUser(currentUserId);
+            if(user){
+                //TODO: delete old token
+                let jwtHelper = new JwtHelper();
+                jwtHelper.sendJwtResponse(res, user, httpStatus.OK);
+            }else{
+                return next(new ApiError('User not found', true, httpStatus.NOT_FOUND));
+            }
+        }catch(error){
+            return next(new ApiError('Internal error occured while refreshing', true));
+        }
 }
