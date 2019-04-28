@@ -102,7 +102,7 @@ class Users extends Model {
         let followReturnString = '';
         let paramObject = {};
 
-        if (currentUserId && currentUserId !== userId) {
+        if (currentUserId) {
             followQueryString = ` OPTIONAL MATCH(currentUser:User{id:{currentUserId}})-[:FOLLOWS_USER]->(follower) 
                                       OPTIONAL MATCH(:User{id:{currentUserId}})<-[following:FOLLOWS_USER]-(follower) `;
             followReturnString = `, followed: count(currentUser) > 0, following: count(following) > 0`;
@@ -138,7 +138,7 @@ class Users extends Model {
         let followReturnString = '';
         let paramObject = {};
 
-        if (currentUserId && currentUserId !== userId) {
+        if (currentUserId) {
             followQueryString = ` OPTIONAL MATCH(currentUser:User{id:{currentUserId}})-[:FOLLOWS_USER]->(follower) 
                                   OPTIONAL MATCH(:User{id:{currentUserId}})<-[following:FOLLOWS_USER]-(follower) `;
             followReturnString = `, followed: count(currentUser) > 0, following: count(following) > 0`;
