@@ -29,7 +29,7 @@ class Users extends Model {
             userProp.photoUrl = photoUrl;
         }
 
-        let queryString = `CREATE(user:User{id:{userId}, username:{username}, email:{email}, password:{password} ${photoUrlString}}) return user`;
+        let queryString = `CREATE(user:User{id:{userId}, username:{username}, email:{email}, password:{password} ${photoUrlString}, followerCount:0, followingCount:0, jokeCount:0}) return user`;
 
         let result = await this.session.run(queryString, {username: username, email: email, password: passwordHash, userId: userId});
         if (!_.isEmpty(result.records)) {
