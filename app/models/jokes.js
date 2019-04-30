@@ -15,7 +15,7 @@ class Jokes extends Model{
             this.uuidProp = 'title';
         }
 
-        async addJoke(title, movieId, text, image, userId) {
+        async addJoke(title, tmdbMovieId, text, image, userId) {
           
             let generalHelper = new GeneralHelper();
 
@@ -33,14 +33,14 @@ class Jokes extends Model{
             }
 
             let jokeId = generalHelper.generateUuid(title, true);
-            let queryString = `MATCH(movie:Movie{id:{movieId}}), (owner:User{id:{userId}})
+            let queryString = `MATCH(movie:Movie{tmdbMovieId:{tmdbMovieId}}), (owner:User{id:{userId}})
                                 CREATE(joke:Joke{id:{jokeId}, title:{title}, likeCount: 0, commentCount: 0,  dateAdded: apoc.date.format(timestamp()) ${imageString} ${textString}}),
                                 (owner)-[:ADDED]->(joke)-[:BELONGS_TO]->(movie) 
                                 WITH joke,movie, owner
-                                MATCH(m:Movie{id:{movieId}}) SET m.jokeCount  = m.jokeCount + 1 RETURN joke,movie, owner
+                                MATCH(m:Movie{tmdbMovieId:{tmdbMovieId}}) SET m.jokeCount  = m.jokeCount + 1 RETURN joke,movie, owner
                         `;
             
-            let result = await this.session.run(queryString, {jokeId:jokeId, movieId: movieId, title:title, text: text, userId: userId, ...imageObject, ...textObject});
+            let result = await this.session.run(queryString, {jokeId:jokeId, tmdbMovieId: tmdbMovieId, title:title, text: text, userId: userId, ...imageObject, ...textObject});
             if(!_.isEmpty(result.records)){
 
                 let joke =  new JokeEntity(result.records[0].get('joke'), {owner: new UserEntity(result.records[0].get('owner')), movie: new MovieEntity(result.records[0].get('movie'))});

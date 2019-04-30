@@ -1,42 +1,73 @@
 const dbUtils = require('../helpers/db_utils');
 const Jokes = require('../models/jokes');
+const Movies = require('../models/movies');
 const Comments = require('../models/comments');
 const ApiError = require('../helpers/api_error');
 const GeneralHelper = require('../helpers/general_helper');
 const _ = require('lodash');
 const httpStatus = require('http-status');
+const got = require('got');
 
 
 module.exports.addJoke = async (req, res, next) => {
     
+    try{
     let userId = req.user.id;
     let title = req.body.title;
-    let movieId = req.body.movie;
+    let tmdbMovieId = +req.body.tmdbMovieId;
     let text = req.body.text;
     let image;
 
+    let canAddMovie = false;
+
     let imageFile = req.file;
 
-    if(text === null &&  imageFile === null ){
-        return next(new ApiError('Internal error occured while adding joke', true, httpStatus.UNPROCESSABLE_ENTITY));
-    }
+    let movies = new Movies(dbUtils.getSession());
 
-    if(imageFile){
-        image = req.file.destination+req.file.filename;
+    
+
+    if(await movies.movieExists(tmdbMovieId)){
+        canAddMovie = true;
+    }else{
+
+        let response = await got(`https://api.themoviedb.org/3/tv/${tmdbMovieId}?api_key=ff066eac5b5bd813f4cb906eb5cf2c21&append_to_response=credits,images`);
+        let gottenMovie = JSON.parse(response.body);
+
+        let name = gottenMovie.name;
+        let posterPath = gottenMovie.poster_path;
+        let firstAirDate = gottenMovie.first_air_date;
+        let overview = gottenMovie.overview;
+        let movie = await movies.addMovie({name: name, tmdbMovieId: tmdbMovieId, overview: overview, posterUrl: posterPath, firstAirDate: firstAirDate});
+        if(movie){
+            canAddMovie = true;
+        }
     }
     
-        let joke = new Jokes(dbUtils.getSession());
-        try{
-            let jokeAdded = await joke.addJoke(title, movieId, text, image, userId);
-            
-            if(jokeAdded){
-                return res.status(httpStatus.CREATED).send(jokeAdded);
-            }else{
-                return next(new ApiError('Internal error occured while adding joke', true));
-            }
-        }catch(err){
-            return next(new ApiError('Internal error occured while adding joke', true));
-        } 
+    if(canAddMovie){
+        if(text === null &&  imageFile === null ){
+            return next(new ApiError('Internal error occured while adding joke', true, httpStatus.UNPROCESSABLE_ENTITY));
+        }
+    
+        if(imageFile){
+            image = req.file.destination+req.file.filename;
+        }
+        
+            let joke = new Jokes(dbUtils.getSession());
+           
+                let jokeAdded = await joke.addJoke(title, tmdbMovieId, text, image, userId);
+                
+                if(jokeAdded){
+                    return res.status(httpStatus.CREATED).send(jokeAdded);
+                }else{
+                    return next(new ApiError('Internal error occured while adding joke', true));
+                }
+    }else{
+        return next(new ApiError('Internal error occured while adding joke', true));
+    }
+    
+    }catch(err){
+        return next(new ApiError('Internal error occured while adding joke', true));
+    } 
 
 }
 

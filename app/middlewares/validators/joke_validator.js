@@ -4,7 +4,7 @@ const createJokeSchema = {
     
     body: {
         title: Joi.string().trim().min(3).required().label('Title should be 3 characters or more'),
-        movie: Joi.string().trim().required().label('Please provide a movie'),
+        tmdbMovieId: Joi.string().trim().required().label('Please provide a movie'),
         text: Joi.string().trim().min(30).label('text should be more than 30 characters')
     }
 }

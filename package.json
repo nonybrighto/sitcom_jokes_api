@@ -23,6 +23,7 @@
     "express-validator": "^5.3.0",
     "firebase-admin": "^6.0.0",
     "google-auth-library": "^2.0.0",
+    "got": "^9.6.0",
     "hbs": "~4.0.1",
     "helmet": "^3.13.0",
     "http-errors": "~1.6.2",

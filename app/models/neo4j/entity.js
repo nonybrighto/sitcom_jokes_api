@@ -16,7 +16,6 @@ class Entity{
             _.extend(this, nodeProperties);
     
             if (numFields){
-                //this._setNumbers(numFields, node.properties);
                 this._modifyNumberFields(numFields);
             }
         }

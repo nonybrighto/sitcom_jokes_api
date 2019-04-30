@@ -141,6 +141,46 @@ class Movies extends Model{
             }
 
         }
+
+        async movieExists(tmdbMovieId){
+
+            let queryString = 'MATCH(movie:Movie{tmdbMovieId:{tmdbMovieId}}) RETURN 1';
+            let result = await this.session.run(queryString, {tmdbMovieId: tmdbMovieId});
+
+            if(_.isEmpty(result.records)){
+                return false;
+            }else{
+                return true;
+            }
+
+
+        }
+
+        async addMovie({name, tmdbMovieId, overview, posterUrl: posterPath, firstAirDate}){
+
+            let generalHelper = new GeneralHelper();
+            let movieId = generalHelper.generateUuid(tmdbMovieId, true);
+            
+            let queryString = `CREATE(movie:Movie{
+                id:{movieId}, 
+                name:{name},
+                tmdbMovieId:${tmdbMovieId},
+                overview: {overview},
+                jokeCount:0,
+                followerCount:0,
+                posterPath:{posterPath},
+                firstAirDate:{firstAirDate}
+            }) RETURN movie`;
+
+            let result = await this.session.run(queryString, {movieId:movieId, name:name, posterPath:posterPath, firstAirDate:firstAirDate, overview:overview});
+            if(!_.isEmpty(result.records)){
+                let joke =  new MovieEntity(result.records[0].get('movie'));
+                return joke;
+            }else{
+                return false;
+            }
+
+        }
 }
 
 module.exports = Movies;
