@@ -28,7 +28,7 @@ router.route('/:userId/following')
 
 
 router.route('/:userId/jokes')
-      .get([authMiddleWare.jwtAuthentication, paginationMiddleWare], UserController.getUserJokes)
+      .get([authMiddleWare.jwtOptionalAuthentication, paginationMiddleWare], UserController.getUserJokes)
 
 
 router.route('/:userId/password')
