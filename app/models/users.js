@@ -5,6 +5,7 @@ const JokeEntity = require('./neo4j/joke_entity');
 const UserEntity = require('./neo4j/user_entity');
 const MovieEntity = require('./neo4j/movie_entity');
 const EmailHelper = require('../helpers/email_helper');
+const GeneralHelper = require('./../helpers/general_helper');
 
 class Users extends Model {
 
@@ -16,18 +17,21 @@ class Users extends Model {
 
     async addUser(username, email, password, photoUrl = null) {
 
+
+        let generalHelper = new GeneralHelper();
+
         const saltRounds = 10;
-        let passwordHash = await bcrypt.hash(password, saltRounds)
-        let userProp = { username: username, email: email, password: passwordHash };
+        let passwordHash = await bcrypt.hash(password, saltRounds);
+        let userId = generalHelper.generateUuid(username, true);
         let photoUrlString = '';
         if (photoUrl != null) {
             photoUrlString = ', photoUrl:{photoUrl}';
             userProp.photoUrl = photoUrl;
         }
 
-        let queryString = `CREATE(user:User{username:{username}, email:{email}, password:{password} ${photoUrlString}}) return user`;
+        let queryString = `CREATE(user:User{id:{userId}, username:{username}, email:{email}, password:{password} ${photoUrlString}}) return user`;
 
-        let result = await this.session.run(queryString, userProp);
+        let result = await this.session.run(queryString, {username: username, email: email, password: passwordHash, userId: userId});
         if (!_.isEmpty(result.records)) {
             return new UserEntity(result.records[0].get('user'), { takenFields: ['*'] });
         } else {
@@ -338,20 +342,22 @@ class Users extends Model {
     }
 
     async isEmailTaken(email) {
-        let userWithEmail = await super.get({ prop: { email: email } });
-        if (userWithEmail) {
-            return true;
-        }
-        return false;
+        let queryString = `MATCH(user:User{email:{email}}) RETURN 1`;
+        let result = await this.session.run(queryString, {email: email});
+        if (_.isEmpty(result.records)) {
+            return false;
+        } 
+        return true;
     }
 
     async usernameTaken(username) {
-        let userWithUsername = await super.get({ prop: { username: username } });
-        if (userWithUsername) {
-            return true;
-        } else {
+
+        let queryString = `MATCH(user:User{username:{username}}) RETURN 1`;
+        let result = await this.session.run(queryString, {username: username});
+        if (_.isEmpty(result.records)) {
             return false;
-        }
+        } 
+        return true;
     }
 
 
