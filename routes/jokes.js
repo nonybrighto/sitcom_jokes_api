@@ -20,7 +20,8 @@ router.route('/popular')
       .get([paginationMiddleWare, authMiddleWare.jwtOptionalAuthentication], JokeController.getJokes);
       
 router.route('/:jokeId')
-      .get(JokeController.getJoke);
+      .get(JokeController.getJoke)
+      .delete([authMiddleWare.jwtAuthentication],JokeController.deleteJoke);
       
 router.route('/:jokeId/likes')
             .get([paginationMiddleWare],JokeController.getJokeLikers)

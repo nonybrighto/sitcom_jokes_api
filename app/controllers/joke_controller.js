@@ -7,6 +7,7 @@ const GeneralHelper = require('../helpers/general_helper');
 const _ = require('lodash');
 const httpStatus = require('http-status');
 const got = require('got');
+const fs = require('fs');
 
 
 module.exports.addJoke = async (req, res, next) => {
@@ -111,6 +112,49 @@ module.exports.getJoke = async (req, res, next) => {
 
 }
 
+module.exports.deleteJoke = async (req, res, next) => {
+
+    let jokeId = req.params.jokeId;
+    let currentUserId = req.user.id;
+
+                        
+    
+    try{
+        let jokes = new Jokes(dbUtils.getSession());
+        let joke = await jokes.getJoke(jokeId);
+        if(joke.owner.id == currentUserId){
+
+            
+            console.log(__dirname);
+            let deleted = await jokes.deleteJoke(jokeId);
+            if(deleted){
+                if(joke.imageUrl != null){
+                        let slashIndex = joke.imageUrl.indexOf('/',9);
+                        let jokeImagePath = joke.imageUrl.slice(slashIndex);
+                        let absPath = __dirname+'/../..'+jokeImagePath;
+                        console.log(absPath);
+                        fs.unlink(absPath, (err)=>{
+                            //TODO: log the file that didn't get deleted successfully
+                            return res.sendStatus(httpStatus.NO_CONTENT);
+                        });
+                }else{
+                    return res.sendStatus(httpStatus.NO_CONTENT);
+                }
+                
+            }else{
+                return next(new ApiError(`Joke could not be found`, true, httpStatus.NOT_FOUND));
+            }
+
+        }else{
+            return next(new ApiError(`Joke doesn't belong to authenticated user`, true, httpStatus.FORBIDDEN));
+        }
+
+    }catch(err){
+        return next(new ApiError('Internal error occured while deleting joke', true));
+    }
+
+}
+
 
 module.exports.addJokeComment = async (req, res, next) => {
 
@@ -118,12 +162,12 @@ module.exports.addJokeComment = async (req, res, next) => {
 
     try{
 
-        let userId = req.user.id;
+        let currentUserId = req.user.id;
         let jokeId = req.params.jokeId;
         let content = req.body.content;
         
         let comments = new Comments(dbUtils.getSession());
-        let comment = await comments.addComment(jokeId, content, userId);
+        let comment = await comments.addComment(jokeId, content, currentUserId);
         if(comment){
             res.status(httpStatus.CREATED).send(comment);
         }else{

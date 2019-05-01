@@ -115,6 +115,28 @@ class Jokes extends Model{
             }
         }
 
+        async getJokeOwner(jokeId){
+
+            let queryString = 'MATCH(joke:Joke{id:{jokeId}})-[:BELONGS_TO]->(owner:User) RETURN owner';
+            let result = await this.session.run(queryString, {id: jokeId});
+            if(!_.isEmpty(result.records)){
+                let owner =  new UserEntity(result.records[0].get('owner'));
+                return owner;
+            }else{
+                return false;
+            }
+
+        }
+
+        async deleteJoke(jokeId){
+            let queryString = 'MATCH(joke:Joke{id:{jokeId}})-[r]-(x) DELETE joke, r RETURN 1';
+            let result = await this.session.run(queryString, {jokeId: jokeId});
+            if(!_.isEmpty(result.records)){
+                return true;
+            }
+            return false;
+        }
+
         async getJokeLikers(jokeId,  offset, limit){
 
             let queryString = `MATCH (user:User)-[:LIKES]->(joke:Joke{id: {jokeId} }) RETURN user SKIP ${offset} LIMIT ${limit}`;
