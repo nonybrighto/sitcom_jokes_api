@@ -37,7 +37,9 @@ class Jokes extends Model{
                                 CREATE(joke:Joke{id:{jokeId}, title:{title}, likeCount: 0, commentCount: 0,  dateAdded: apoc.date.format(timestamp()) ${imageString} ${textString}}),
                                 (owner)-[:ADDED]->(joke)-[:BELONGS_TO]->(movie) 
                                 WITH joke,movie, owner
-                                MATCH(m:Movie{tmdbMovieId:{tmdbMovieId}}) SET m.jokeCount  = m.jokeCount + 1 RETURN joke,movie, owner
+                                SET movie.jokeCount  = movie.jokeCount + 1 
+                                SET owner.jokeCount  = owner.jokeCount + 1 
+                                RETURN joke,movie, owner
                         `;
             
             let result = await this.session.run(queryString, {jokeId:jokeId, tmdbMovieId: tmdbMovieId, title:title, text: text, userId: userId, ...imageObject, ...textObject});
@@ -115,21 +117,12 @@ class Jokes extends Model{
             }
         }
 
-        async getJokeOwner(jokeId){
-
-            let queryString = 'MATCH(joke:Joke{id:{jokeId}})-[:BELONGS_TO]->(owner:User) RETURN owner';
-            let result = await this.session.run(queryString, {id: jokeId});
-            if(!_.isEmpty(result.records)){
-                let owner =  new UserEntity(result.records[0].get('owner'));
-                return owner;
-            }else{
-                return false;
-            }
-
-        }
-
         async deleteJoke(jokeId){
-            let queryString = 'MATCH(joke:Joke{id:{jokeId}})-[r]-(x) DELETE joke, r RETURN 1';
+            let queryString = `MATCH(user:User)-[a:ADDED]->(j:Joke{id:{jokeId}})-[b:BELONGS_TO]->(movie:Movie) 
+                               SET user.jokeCount = user.jokeCount - 1 
+                               SET  movie.jokeCount = movie.jokeCount - 1 
+                               WITH j MATCH(j)-[r]-(x) 
+                               DELETE j,r RETURN 1`;
             let result = await this.session.run(queryString, {jokeId: jokeId});
             if(!_.isEmpty(result.records)){
                 return true;
