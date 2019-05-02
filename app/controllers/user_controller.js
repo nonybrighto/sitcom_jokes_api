@@ -6,6 +6,8 @@ const Jokes = require('../models/jokes');
 const PasswordTokens = require('../models/password_tokens');
 const ApiError = require('../helpers/api_error');
 const httpStatus = require('http-status');
+const fs = require('fs');
+var nconf = require('./../../config/config');
 
 module.exports.getAllUsers = async (req, res, next) => {
 
@@ -73,6 +75,38 @@ module.exports.getUser = async(req, res, next) => {
         }
 
 
+}
+module.exports.changeProfilePhoto = async(req, res, next) => {
+
+        try{
+            let currentUserId = req.user.id;
+            let users = new Users(dbUtils.getSession());
+            let userPhotoUrl = await users.getUserPhotoUrl(currentUserId);
+            let imagePath = req.file.destination+req.file.filename;
+             let changedUser = await users.changeUserPhotoUrl(currentUserId, imagePath);
+
+             if(changedUser){
+                //identifies photoUrl for photos uploaded from the system instead of through social.
+                if(userPhotoUrl && userPhotoUrl.startsWith('uploads')){
+                        //delete previously uploaded photo
+                        let absPath = __dirname+'/../../'+userPhotoUrl;
+                        fs.unlink(absPath, (err)=>{
+                                //TODO: log error that file could not be removed
+                                return res.status(httpStatus.OK).send(changedUser);
+                        });
+                
+                }else{
+                    return res.status(httpStatus.OK).send(changedUser); 
+                }
+            }else{
+                //TODO: log image uploaded but profile not changed
+                return next(new ApiError('Internal error occured while changing photo', true));
+            }
+
+
+        }catch(error){
+            return next(new ApiError('Internal error occured while changing photo', true));
+        }
 }
 module.exports.getCurrentUser = async(req, res, next) => {
 

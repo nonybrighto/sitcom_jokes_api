@@ -125,7 +125,6 @@ module.exports.deleteJoke = async (req, res, next) => {
         if(joke.owner.id == currentUserId){
 
             
-            console.log(__dirname);
             let deleted = await jokes.deleteJoke(jokeId);
             if(deleted){
                 if(joke.imageUrl != null){

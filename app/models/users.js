@@ -88,6 +88,28 @@ class Users extends Model {
 
     }
 
+    async getUserPhotoUrl(userId){
+
+        let queryString = 'MATCH(user:User{id:{userId}}) RETURN user.photoUrl as photoUrl';
+        let result = await this.session.run(queryString, { userId: userId});
+        if (!_.isEmpty(result.records)) {
+            return result.records[0].get('photoUrl');
+        } else {
+            return false;
+        }
+    }
+    
+    async changeUserPhotoUrl(userId, photoUrl){
+
+        let queryString = 'MATCH(user:User{id:{userId}}) SET user.photoUrl = {photoUrl} RETURN user';
+        let result = await this.session.run(queryString, { userId: userId, photoUrl: photoUrl});
+        if (!_.isEmpty(result.records)) {
+            return new UserEntity(result.records[0].get('user'));
+        } else {
+            return false;
+        }
+    }
+
     async getCurrentUser(currentUserId){
 
         let queryString = `MATCH(user{id:{currentUserId}}) 

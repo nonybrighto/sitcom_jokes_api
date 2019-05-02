@@ -5,6 +5,9 @@ const mkdirp = require('mkdirp');
 
 class FileUploader{
 
+    constructor({uploadPath = 'images'}={}){
+        this.uploadsPath = uploadPath;
+    }
 
     imageUploadMiddleWare({fieldName = 'image', bodyValid = null} = {}){
 
@@ -19,7 +22,7 @@ class FileUploader{
         let currentTimeString = new Date().toISOString();
        let storage =  multer.diskStorage({
             destination: (req, file, cb)=>{
-                let filePath = this.createUploadsPath('images', md5(currentTimeString+file.originalname));
+                let filePath = this.createUploadsPath(this.uploadsPath, md5(currentTimeString+file.originalname));
                 mkdirp.sync(filePath);
                 cb(null, filePath);
             },
